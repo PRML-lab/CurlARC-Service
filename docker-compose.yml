@@ -18,27 +18,27 @@ services:
       - SERVER_PORT=8080
     ports:
       - 8080:8080
-    # depends_on:
-    #   db:
-    #     condition: service_healthy
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - ./:/workspaces
 
-  # db:
-  #   image: postgres:15.4
-  #   container_name: db
-  #   restart: always
-  #   ports:
-  #     - 5432:5432
-  #   environment:
-  #     - TZ=Asia/Tokyo
-  #     - POSTGRES_USER=app
-  #     - POSTGRES_PASSWORD=password
-  #     - POSTGRES_DB=app
-  #   volumes:
-  #     - ./docker/data:/tmp/data
-  #     - ./docker/sql:/docker-entrypoint-initdb.d
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app}"]
-  #     interval: 5s
-  #     retries: 3
+  db:
+    image: postgres:15.4
+    container_name: db
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - TZ=Asia/Tokyo
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=app
+    volumes:
+      - ./docker/data:/tmp/data
+      # - ./docker/sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app}"]
+      interval: 5s
+      retries: 3
