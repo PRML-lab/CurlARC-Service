@@ -1,9 +1,10 @@
 package domain
 
 type User struct {
-	ID       string
-	Username string
-	Email    string
+	Id      string
+	Name    string
+	Email   string
+	TeamIds []string
 }
 
 type Users []User
