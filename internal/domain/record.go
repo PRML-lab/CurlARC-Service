@@ -5,10 +5,15 @@ import (
 )
 
 // ストーンの位置(ハウスの中心からの極座標で表現)
-type StoneCoordinate struct {
+type Coordinate struct {
 	StoneNumber int
 	R           float64
 	Theta       float64
+}
+
+type Stones struct {
+	FriendStones []Coordinate
+	EnemyStones  []Coordinate
 }
 
 // ショットの情報
@@ -16,13 +21,13 @@ type Shot struct {
 	Type        string
 	SuccessRate float64
 	Shooter     User
+	Stones      Stones
 }
 
 // 1エンド分のデータ
 type DataPerEnd struct {
-	StonesCoordinate []StoneCoordinate // 全ストーンの位置
-	Shot             Shot
-	Score            int // エンド終了時の得点
+	Shots []Shot
+	Score int // エンド終了時の得点
 }
 
 // 1試合の記録
