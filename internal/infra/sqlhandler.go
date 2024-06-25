@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 )
 
 type SqlHandler struct {
@@ -11,11 +12,13 @@ type SqlHandler struct {
 }
 
 func NewSqlHandler() *SqlHandler {
-	conn, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/todo")
+	dsn := "host=db user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Tokyo"
+	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err.Error)
 	}
-	sqlHandler := new(SqlHandler)
-	sqlHandler.Conn = conn
+	sqlHandler := &SqlHandler{
+		Conn: conn,
+	}
 	return sqlHandler
 }

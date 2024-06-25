@@ -1,7 +1,11 @@
 package main
 
 import (
+	"CurlARC/internal/handler"
+	"CurlARC/internal/injector"
 	"fmt"
+
+	"github.com/labstack/echo"
 )
 
 // func main() {
@@ -21,5 +25,9 @@ import (
 // }
 
 func main() {
-	fmt.Println("Hello, World!")
+	fmt.Println("sever start")
+	userHandler := injector.InjectUserHandler()
+	e := echo.New()
+	handler.InitRouting(e, userHandler)
+	e.Logger.Fatal(e.Start(":8080"))
 }
