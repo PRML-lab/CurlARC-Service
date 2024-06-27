@@ -1,14 +1,12 @@
 package infra
 
 import (
-	"database/sql"
-
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type SqlHandler struct {
-	Conn *sql.DB
+	Conn *gorm.DB
 }
 
 func NewSqlHandler() *SqlHandler {
