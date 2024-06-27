@@ -10,7 +10,7 @@ type SqlHandler struct {
 }
 
 func NewSqlHandler() *SqlHandler {
-	dsn := "host=db user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Tokyo"
+	dsn := "host=db user=app password=password dbname=app port=5432 sslmode=disable TimeZone=Asia/Tokyo"
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err.Error)

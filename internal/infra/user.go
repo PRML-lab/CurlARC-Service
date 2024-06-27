@@ -3,67 +3,66 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+
+	"gorm.io/gorm"
 )
 
 type UserRepository struct {
-	SqlHandler
+	DB *gorm.DB
 }
 
-func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
-	userRepository := UserRepository{sqlHandler}
+func NewUserRepository(db *gorm.DB) repository.UserRepository {
+	userRepository := UserRepository{DB: db}
 	return &userRepository
 }
 
 func (userRepo *UserRepository) CreateUser(user *model.User) error {
-	_, err := userRepo.Conn.Exec("INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)", user.Id, user.Name, user.Email, user.TeamIds)
-	if err != nil {
-		return err
+	result := userRepo.DB.Create(user)
+	if result.Error != nil {
+		return result.Error
 	}
 	return nil
 }
 
 func (userRepo *UserRepository) AuthUser(email, token string) (*model.User, error) {
-	row := userRepo.Conn.QueryRow("SELECT * FROM users WHERE email = ? AND password = ?", email, token)
 	user := new(model.User)
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.TeamIds)
-	if err != nil {
-		return nil, err
+	result := userRepo.DB.Where("email = ? AND password = ?", email, token).First(user)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return user, nil
 }
 
 func (userRepo *UserRepository) FindById(id string) (*model.User, error) {
-	row := userRepo.Conn.QueryRow("SELECT * FROM users WHERE id = ?", id)
 	user := new(model.User)
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.TeamIds)
-	if err != nil {
-		return nil, err
+	result := userRepo.DB.First(user, id)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return user, nil
 }
 
 func (userRepo *UserRepository) FindByEmail(email string) (*model.User, error) {
-	row := userRepo.Conn.QueryRow("SELECT * FROM users WHERE email = ?", email)
 	user := new(model.User)
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.TeamIds)
-	if err != nil {
-		return nil, err
+	result := userRepo.DB.Where("email = ?", email).First(user)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return user, nil
 }
 
 func (userRepo *UserRepository) Update(user *model.User) error {
-	_, err := userRepo.Conn.Exec("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?", user.Name, user.Email, user.TeamIds, user.Id)
-	if err != nil {
-		return err
+	result := userRepo.DB.Save(user)
+	if result.Error != nil {
+		return result.Error
 	}
 	return nil
 }
 
 func (userRepo *UserRepository) Delete(id string) error {
-	_, err := userRepo.Conn.Exec("DELETE FROM users WHERE id = ?", id)
-	if err != nil {
-		return err
+	result := userRepo.DB.Delete(&model.User{}, id)
+	if result.Error != nil {
+		return result.Error
 	}
 	return nil
 }

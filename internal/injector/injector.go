@@ -16,7 +16,7 @@ func InjectDB() infra.SqlHandler {
 
 func InjectUserRepository() repository.UserRepository {
 	sqlHandler := InjectDB()
-	return infra.NewUserRepository(sqlHandler)
+	return infra.NewUserRepository(sqlHandler.Conn)
 }
 
 func InjectUserUsecase() usecase.UserUsecase {
