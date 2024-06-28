@@ -9,7 +9,7 @@ import (
 // UserUsecase はユーザー関連のユースケースを定義するインターフェースです。
 type UserUsecase interface {
 	// SignUp は新しいユーザーを登録します。
-	SignUp(ctx context.Context, user *model.User) error
+	SignUp(user *model.User) error
 	// SignIn はユーザーのログインを処理します。
 	SignIn(ctx context.Context, email, password string) (*model.User, error)
 	// GetUser はログイン中のユーザー情報を取得します。
@@ -33,8 +33,9 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 	return &userUsecase
 }
 
-func (usecase *userUsecase) SignUp(ctx context.Context, user *model.User) error {
-	return usecase.userRepo.CreateUser(user)
+func (usecase *userUsecase) SignUp(user *model.User) (err error) {
+	_, err = usecase.userRepo.CreateUser(user)
+	return
 }
 
 func (usecase *userUsecase) SignIn(ctx context.Context, email, token string) (*model.User, error) {

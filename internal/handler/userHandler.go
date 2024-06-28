@@ -17,15 +17,13 @@ func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
 	return userHandler
 }
 
-func (h *UserHandler) SignUp(c echo.Context) error {
-	var user model.User
-	if err := c.Bind(&user); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
+func (handler *UserHandler) SignUp() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var user model.User
+		c.Bind(&user)
+		err := handler.userUsecase.SignUp(&user)
+		return c.JSON(http.StatusOK, err)
 	}
-	if err := h.userUsecase.SignUp(c.Request().Context(), &user); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	return c.JSON(http.StatusCreated, "User created successfully")
 }
 
 func (h *UserHandler) SignIn(c echo.Context) error {

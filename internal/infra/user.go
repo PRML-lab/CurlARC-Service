@@ -3,6 +3,7 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -16,12 +17,13 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 	return &userRepository
 }
 
-func (userRepo *UserRepository) CreateUser(user *model.User) error {
+func (userRepo *UserRepository) CreateUser(user *model.User) (*model.User, error) {
+	fmt.Println("User @infra:", user)
 	result := userRepo.DB.Create(user)
 	if result.Error != nil {
-		return result.Error
+		return user, result.Error
 	}
-	return nil
+	return user, nil
 }
 
 func (userRepo *UserRepository) AuthUser(email, token string) (*model.User, error) {
