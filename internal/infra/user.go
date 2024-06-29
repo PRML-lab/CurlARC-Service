@@ -3,7 +3,6 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
-	"fmt"
 )
 
 type UserRepository struct {
@@ -16,7 +15,6 @@ func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
 }
 
 func (userRepo *UserRepository) CreateUser(user *model.User) (*model.User, error) {
-	fmt.Println("User @infra:", user)
 	result := userRepo.SqlHandler.Conn.Create(user)
 	if result.Error != nil {
 		return user, result.Error
