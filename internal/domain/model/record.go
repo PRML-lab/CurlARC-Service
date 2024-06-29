@@ -12,31 +12,29 @@ type Coordinate struct {
 }
 
 type Stones struct {
-	FriendStones []Coordinate
-	EnemyStones  []Coordinate
+	FriendStones []Coordinate `json:"friend_stones" gorm:"embedded"`
+	EnemyStones  []Coordinate `json:"enemy_stones" gorm:"embedded"`
 }
 
 // ショットの情報
 type Shot struct {
-	Type        string
-	SuccessRate float64
-	Shooter     User
-	Stones      Stones
+	Type        string  `json:"type"`
+	SuccessRate float64 `json:"success_rate"`
+	Shooter     string  `json:"shooter"`
+	Stones      Stones  `json:"stones" gorm:"embedded"`
 }
 
 // 1エンド分のデータ
 type DataPerEnd struct {
-	Shots []Shot
-	Score int // エンド終了時の得点
+	Shots []Shot `json:"shots" gorm:"embedded"`
+	Score int    `json:"score"` // エンド終了時の得点
 }
 
 // 1試合の記録
 type Record struct {
-	Id       string
-	Team     Team
-	EndsData []DataPerEnd
-	Place    string
-	Date     time.Time
+	Id string `json:"id"`
+	// Team     Team         `json:"team"`
+	EndsData []DataPerEnd `json:"ends_data" gorm:"embedded"`
+	Place    string       `json:"place"`
+	Date     time.Time    `json:"date"`
 }
-
-type Records []Record
