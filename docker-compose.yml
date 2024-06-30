@@ -37,7 +37,7 @@ services:
       - POSTGRES_DB=app
     volumes:
       - ./docker/data:/tmp/data
-      # - ./docker/sql:/docker-entrypoint-initdb.d
+      - ./docker/sql:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app}"]
       interval: 5s

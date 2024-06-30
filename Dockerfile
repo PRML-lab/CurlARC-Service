@@ -8,6 +8,10 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./cmd -buildvcs=false
 
+RUN go get github.com/gin-gonic/gin & \
+    go get github.com/go-sql-driver/mysql & \
+    go get github.com/jinzhu/gorm
+
 
 FROM alpine:3.18.3 AS deploy
 
