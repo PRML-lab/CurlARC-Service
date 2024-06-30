@@ -3,25 +3,46 @@ package handler
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/usecase"
+	"context"
 	"net/http"
 
+	"firebase.google.com/go/v4/auth"
 	"github.com/labstack/echo"
 )
 
 type UserHandler struct {
 	userUsecase usecase.UserUsecase
+	authClient  *auth.Client
 }
 
-func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
-	userHandler := UserHandler{userUsecase: userUsecase}
-	return userHandler
+func NewUserHandler(userUsecase usecase.UserUsecase, authClient *auth.Client) UserHandler {
+	return UserHandler{userUsecase: userUsecase, authClient: authClient}
 }
 
-func (handler *UserHandler) SignUp() echo.HandlerFunc {
+func (h *UserHandler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Request().Header.Get("Authorization")
+		if token == "" {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Missing token")
+		}
+
+		// Firebaseトークンの検証
+		decodedToken, err := h.authClient.VerifyIDToken(context.Background(), token)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
+		}
+
+		// ユーザーIDをコンテキストに追加
+		c.Set("userID", decodedToken.UID)
+		return next(c)
+	}
+}
+
+func (h *UserHandler) SignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var user model.User
 		c.Bind(&user)
-		err := handler.userUsecase.SignUp(&user)
+		err := h.userUsecase.SignUp(&user)
 		return c.JSON(http.StatusOK, err)
 	}
 }
@@ -42,7 +63,7 @@ func (h *UserHandler) SignIn(c echo.Context) error {
 }
 
 func (h *UserHandler) GetUser(c echo.Context) error {
-	userID := c.Get("userID").(string) // userIDは認証ミドルウェアから取得する想定
+	userID := c.Get("userID").(string)
 	user, err := h.userUsecase.GetUser(c.Request().Context(), userID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -56,7 +77,7 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
 	}
-	user.Id = userId // 確実に認証されたユーザーのIDを使用
+	user.Id = userId
 	if err := h.userUsecase.UpdateUser(c.Request().Context(), &user); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
