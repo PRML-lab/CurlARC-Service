@@ -21,3 +21,8 @@
 go.work
 
 docker/tmp/*
+
+.env
+
+# google credential
+service_account_file.json

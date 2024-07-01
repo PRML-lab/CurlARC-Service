@@ -47,47 +47,59 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 	}
 }
 
-func (h *UserHandler) SignIn(c echo.Context) error {
-	var credentials struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+// ログイン
+func (h *UserHandler) SignIn() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var credentials struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+		if err := c.Bind(&credentials); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
+		}
+		user, err := h.userUsecase.SignIn(c.Request().Context(), credentials.Email, credentials.Password)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid email or password")
+		}
+		return c.JSON(http.StatusOK, user)
 	}
-	if err := c.Bind(&credentials); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
-	}
-	user, err := h.userUsecase.SignIn(c.Request().Context(), credentials.Email, credentials.Password)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid email or password")
-	}
-	return c.JSON(http.StatusOK, user)
 }
 
-func (h *UserHandler) GetUser(c echo.Context) error {
-	userID := c.Get("userID").(string)
-	user, err := h.userUsecase.GetUser(c.Request().Context(), userID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+// ユーザー情報の取得
+func (h *UserHandler) GetUser() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID := c.Get("userID").(string)
+		user, err := h.userUsecase.GetUser(c.Request().Context(), userID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, user)
 	}
-	return c.JSON(http.StatusOK, user)
 }
 
-func (h *UserHandler) UpdateUser(c echo.Context) error {
-	userId := c.Get("userID").(string)
-	var user model.User
-	if err := c.Bind(&user); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
+// ユーザー情報の更新
+func (h *UserHandler) UpdateUser() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userId := c.Get("userID").(string)
+		var user model.User
+		if err := c.Bind(&user); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
+		}
+		user.Id = userId
+		if err := h.userUsecase.UpdateUser(c.Request().Context(), &user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.NoContent(http.StatusOK)
 	}
-	user.Id = userId
-	if err := h.userUsecase.UpdateUser(c.Request().Context(), &user); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	return c.NoContent(http.StatusOK)
 }
 
-func (h *UserHandler) DeleteUser(c echo.Context) error {
-	userID := c.Get("userID").(string)
-	if err := h.userUsecase.DeleteUser(c.Request().Context(), userID); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+// ユーザーの削除
+func (h *UserHandler) DeleteUser() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID := c.Get("userID").(string)
+		if err := h.userUsecase.DeleteUser(c.Request().Context(), userID); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.NoContent(http.StatusOK)
 	}
-	return c.NoContent(http.StatusOK)
 }

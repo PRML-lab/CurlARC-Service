@@ -31,7 +31,7 @@ func InjectUserUsecase() usecase.UserUsecase {
 }
 
 func InjectFirebaseAuthClient() *auth.Client {
-	opt := option.WithCredentialsFile("path/to/serviceAccountKey.json")
+	opt := option.WithCredentialsFile("service_account_file.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
