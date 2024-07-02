@@ -65,6 +65,17 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 	}
 }
 
+// ユーザー一覧の取得
+func (h *UserHandler) GetAllUser() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		users, err := h.userUsecase.GetAllUsers(c.Request().Context())
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, users)
+	}
+}
+
 // ユーザー情報の取得
 func (h *UserHandler) GetUser() echo.HandlerFunc {
 	return func(c echo.Context) error {

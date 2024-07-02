@@ -12,6 +12,8 @@ type UserUsecase interface {
 	SignUp(user *model.User) error
 	// SignIn はユーザーのログインを処理します。
 	SignIn(ctx context.Context, email, password string) (*model.User, error)
+	// GetAllUsers は全てのユーザー情報を取得します。
+	GetAllUsers(ctx context.Context) ([]*model.User, error)
 	// GetUser はログイン中のユーザー情報を取得します。
 	GetUser(ctx context.Context, userID string) (*model.User, error)
 	// UpdateUser はユーザー情報を更新します。
@@ -40,6 +42,10 @@ func (usecase *userUsecase) SignUp(user *model.User) (err error) {
 
 func (usecase *userUsecase) SignIn(ctx context.Context, email, token string) (*model.User, error) {
 	return usecase.userRepo.AuthUser(email, token)
+}
+
+func (usecase *userUsecase) GetAllUsers(ctx context.Context) ([]*model.User, error) {
+	return usecase.userRepo.FindAll()
 }
 
 func (usecase *userUsecase) GetUser(ctx context.Context, userID string) (*model.User, error) {

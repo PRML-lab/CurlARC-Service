@@ -31,6 +31,15 @@ func (userRepo *UserRepository) AuthUser(email, token string) (*model.User, erro
 	return user, nil
 }
 
+func (userRepo *UserRepository) FindAll() ([]*model.User, error) {
+	users := []*model.User{}
+	result := userRepo.SqlHandler.Conn.Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return users, nil
+}
+
 func (userRepo *UserRepository) FindById(id string) (*model.User, error) {
 	user := new(model.User)
 	result := userRepo.SqlHandler.Conn.First(user, id)
