@@ -6,7 +6,7 @@ import (
 
 // UserRepository interface
 type UserRepository interface {
-	CreateUser(user *model.User) (*model.User, error)
+	Save(user *model.User) (*model.User, error)
 	//
 	AuthUser(email, token string) (*model.User, error)
 	FindAll() ([]*model.User, error)

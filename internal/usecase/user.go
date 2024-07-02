@@ -4,12 +4,16 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"context"
+	"errors"
+	"fmt"
+
+	"github.com/google/uuid"
 )
 
 // UserUsecase はユーザー関連のユースケースを定義するインターフェースです。
 type UserUsecase interface {
 	// SignUp は新しいユーザーを登録します。
-	SignUp(user *model.User) error
+	SignUp(ctx context.Context, name, email, teamIds string) error
 	// SignIn はユーザーのログインを処理します。
 	SignIn(ctx context.Context, email, password string) (*model.User, error)
 	// GetAllUsers は全てのユーザー情報を取得します。
@@ -35,9 +39,29 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 	return &userUsecase
 }
 
-func (usecase *userUsecase) SignUp(user *model.User) (err error) {
-	_, err = usecase.userRepo.CreateUser(user)
-	return
+func (usecase *userUsecase) SignUp(ctx context.Context, name, email, teamIds string) (err error) {
+	// email が既に登録されているか確認
+	user, err := usecase.userRepo.FindByEmail(email)
+	fmt.Println(user)
+	if user != nil {
+		return errors.New("email is already used")
+	}
+	if err != nil {
+		return err
+	}
+
+	// ユーザーを登録
+	newUser := &model.User{
+		Id:      uuid.New().String(),
+		Name:    name,
+		Email:   email,
+		TeamIds: teamIds,
+	}
+	_, err = usecase.userRepo.Save(newUser)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (usecase *userUsecase) SignIn(ctx context.Context, email, token string) (*model.User, error) {

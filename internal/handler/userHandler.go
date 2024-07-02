@@ -38,11 +38,20 @@ func (h *UserHandler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// 新規ユーザー登録
 func (h *UserHandler) SignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var user model.User
-		c.Bind(&user)
-		err := h.userUsecase.SignUp(&user)
+		var req struct {
+			Name    string `json:"name"`
+			Email   string `json:"email"`
+			TeamIds string `json:"team_ids"`
+		}
+
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		}
+		err := h.userUsecase.SignUp(c.Request().Context(), req.Name, req.Email, req.TeamIds)
+
 		return c.JSON(http.StatusOK, err)
 	}
 }

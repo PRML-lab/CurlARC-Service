@@ -14,7 +14,7 @@ func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
 	return &userRepository
 }
 
-func (userRepo *UserRepository) CreateUser(user *model.User) (*model.User, error) {
+func (userRepo *UserRepository) Save(user *model.User) (*model.User, error) {
 	result := userRepo.SqlHandler.Conn.Create(user)
 	if result.Error != nil {
 		return user, result.Error
