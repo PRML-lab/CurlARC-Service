@@ -43,11 +43,11 @@ func (usecase *userUsecase) SignUp(ctx context.Context, name, email, teamIds str
 	// email が既に登録されているか確認
 	user, err := usecase.userRepo.FindByEmail(email)
 	fmt.Println(user)
-	if user != nil {
-		return errors.New("email is already used")
-	}
 	if err != nil {
 		return err
+	}
+	if user != nil {
+		return errors.New("email is already registered")
 	}
 
 	// ユーザーを登録
