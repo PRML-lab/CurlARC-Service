@@ -4,7 +4,6 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -42,12 +41,11 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 func (usecase *userUsecase) SignUp(ctx context.Context, name, email, teamIds string) (err error) {
 	// email が既に登録されているか確認
 	user, err := usecase.userRepo.FindByEmail(email)
-	fmt.Println(user)
-	if err != nil {
+	fmt.Println(user, err)
+	if err == nil {
+		return repository.ErrEmailExists
+	} else if err != repository.ErrUserNotFound {
 		return err
-	}
-	if user != nil {
-		return errors.New("email is already registered")
 	}
 
 	// ユーザーを登録

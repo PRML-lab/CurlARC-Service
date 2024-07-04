@@ -2,6 +2,7 @@ package handler
 
 import (
 	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/usecase"
 	"context"
 	"net/http"
@@ -50,7 +51,14 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
+
 		err := h.userUsecase.SignUp(c.Request().Context(), req.Name, req.Email, req.TeamIds)
+		if err != nil {
+			if err == repository.ErrEmailExists {
+				return c.JSON(http.StatusConflict, map[string]string{"error": "email already exists"})
+			}
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 
 		return c.JSON(http.StatusOK, err)
 	}

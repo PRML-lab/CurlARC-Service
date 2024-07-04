@@ -2,6 +2,12 @@ package repository
 
 import (
 	"CurlARC/internal/domain/model"
+	"errors"
+)
+
+var (
+	ErrUserNotFound = errors.New("user not found")
+	ErrEmailExists  = errors.New("email already exists")
 )
 
 // UserRepository interface
