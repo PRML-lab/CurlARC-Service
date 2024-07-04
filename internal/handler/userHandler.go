@@ -20,39 +20,33 @@ func NewUserHandler(userUsecase usecase.UserUsecase, authClient *auth.Client) Us
 	return UserHandler{userUsecase: userUsecase, authClient: authClient}
 }
 
-func (h *UserHandler) Authenticate(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		token := c.Request().Header.Get("Authorization")
-		if token == "" {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Missing token")
-		}
-
-		// Firebaseトークンの検証
-		decodedToken, err := h.authClient.VerifyIDToken(context.Background(), token)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
-		}
-
-		// ユーザーIDをコンテキストに追加
-		c.Set("userID", decodedToken.UID)
-		return next(c)
-	}
-}
-
 // 新規ユーザー登録
 func (h *UserHandler) SignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req struct {
-			Name    string `json:"name"`
-			Email   string `json:"email"`
-			TeamIds string `json:"team_ids"`
+			Name     string `json:"name"`
+			Email    string `json:"email"`
+			Password string `json:"password"`
+			TeamIds  string `json:"team_ids"`
 		}
 
+		// リクエストのバインド
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
 
-		err := h.userUsecase.SignUp(c.Request().Context(), req.Name, req.Email, req.TeamIds)
+		// Firebase Auth でユーザーを作成
+		params := (&auth.UserToCreate{}).
+			Email(req.Email).
+			Password(req.Password)
+
+		u, err := h.authClient.CreateUser(context.Background(), params)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		// ユーザー情報をDBに保存
+		err = h.userUsecase.SignUp(c.Request().Context(), u.UID, req.Name, req.Email, req.TeamIds)
 		if err != nil {
 			if err == repository.ErrEmailExists {
 				return c.JSON(http.StatusConflict, map[string]string{"error": "email already exists"})
@@ -67,17 +61,23 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 // ログイン
 func (h *UserHandler) SignIn() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var credentials struct {
-			Email    string `json:"email"`
-			Password string `json:"password"`
+		var req struct {
+			IdToken string `json:"id_token"`
 		}
-		if err := c.Bind(&credentials); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
+
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
-		user, err := h.userUsecase.SignIn(c.Request().Context(), credentials.Email, credentials.Password)
+
+		// Verify the ID token
+		token, err := h.authClient.VerifyIDToken(context.Background(), req.IdToken)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid email or password")
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid token"})
 		}
+
+		// Retrieve user information from PostgreSQL
+		user, err := h.userUsecase.GetUser(c.Request().Context(), token.UID)
+
 		return c.JSON(http.StatusOK, user)
 	}
 }
