@@ -4,6 +4,7 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/usecase"
+	"CurlARC/internal/utils"
 	"context"
 	"net/http"
 
@@ -76,9 +77,18 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 		}
 
 		// Retrieve user information from PostgreSQL
-		user, err := h.userUsecase.GetUser(c.Request().Context(), token.UID)
+		_, err = h.userUsecase.GetUser(c.Request().Context(), token.UID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 
-		return c.JSON(http.StatusOK, user)
+		// Generate JWT
+		jwt, err := utils.GenerateJWT(token.UID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"jwt": jwt})
 	}
 }
 

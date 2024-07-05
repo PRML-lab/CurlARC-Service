@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"CurlARC/internal/middleware"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -14,6 +15,7 @@ func InitRouting(e *echo.Echo, userHandler UserHandler) {
 
 	// 認証が必要なルートにミドルウェアを適用
 	authGroup := e.Group("/auth")
+	authGroup.Use(middleware.JWTMiddleware)
 	authGroup.GET("/user", userHandler.GetUser())
 	authGroup.PATCH("/user", userHandler.UpdateUser())
 	authGroup.DELETE("/user", userHandler.DeleteUser())
