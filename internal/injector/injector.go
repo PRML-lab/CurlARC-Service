@@ -25,11 +25,6 @@ func InjectUserRepository() repository.UserRepository {
 	return infra.NewUserRepository(sqlHandler)
 }
 
-func InjectUserUsecase() usecase.UserUsecase {
-	userRepo := InjectUserRepository()
-	return usecase.NewUserUsecase(userRepo)
-}
-
 func InjectFirebaseAuthClient() *auth.Client {
 	opt := option.WithCredentialsFile("service_account_file.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
@@ -45,8 +40,13 @@ func InjectFirebaseAuthClient() *auth.Client {
 	return authClient
 }
 
+func InjectUserUsecase() usecase.UserUsecase {
+	userRepo := InjectUserRepository()
+	authClient := InjectFirebaseAuthClient()
+	return usecase.NewUserUsecase(userRepo, authClient)
+}
+
 func InjectUserHandler() handler.UserHandler {
 	userUsecase := InjectUserUsecase()
-	authClient := InjectFirebaseAuthClient()
-	return handler.NewUserHandler(userUsecase, authClient)
+	return handler.NewUserHandler(userUsecase)
 }

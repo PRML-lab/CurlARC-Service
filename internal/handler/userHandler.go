@@ -4,31 +4,28 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/usecase"
-	"CurlARC/internal/utils"
-	"context"
 	"net/http"
 
-	"firebase.google.com/go/v4/auth"
 	"github.com/labstack/echo"
+	"github.com/lib/pq"
 )
 
 type UserHandler struct {
 	userUsecase usecase.UserUsecase
-	authClient  *auth.Client
 }
 
-func NewUserHandler(userUsecase usecase.UserUsecase, authClient *auth.Client) UserHandler {
-	return UserHandler{userUsecase: userUsecase, authClient: authClient}
+func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
+	return UserHandler{userUsecase: userUsecase}
 }
 
 // 新規ユーザー登録
 func (h *UserHandler) SignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req struct {
-			Name     string `json:"name"`
-			Email    string `json:"email"`
-			Password string `json:"password"`
-			TeamIds  string `json:"team_ids"`
+			Name     string         `json:"name"`
+			Email    string         `json:"email"`
+			Password string         `json:"password"`
+			TeamIds  pq.StringArray `json:"team_ids"`
 		}
 
 		// リクエストのバインド
@@ -36,18 +33,8 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
 
-		// Firebase Auth でユーザーを作成
-		params := (&auth.UserToCreate{}).
-			Email(req.Email).
-			Password(req.Password)
-
-		u, err := h.authClient.CreateUser(context.Background(), params)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-
-		// ユーザー情報をDBに保存
-		err = h.userUsecase.SignUp(c.Request().Context(), u.UID, req.Name, req.Email, req.TeamIds)
+		// ユースケースにリクエストを渡す
+		err := h.userUsecase.SignUp(c.Request().Context(), req.Name, req.Email, req.Password, req.TeamIds)
 		if err != nil {
 			if err == repository.ErrEmailExists {
 				return c.JSON(http.StatusConflict, map[string]string{"error": "email already exists"})
@@ -70,25 +57,26 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
 
-		// Verify the ID token
-		token, err := h.authClient.VerifyIDToken(context.Background(), req.IdToken)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid token"})
-		}
+		// // Verify the ID token
+		// token, err := h.authClient.VerifyIDToken(context.Background(), req.IdToken)
+		// if err != nil {
+		// 	return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid token"})
+		// }
 
-		// Retrieve user information from PostgreSQL
-		_, err = h.userUsecase.GetUser(c.Request().Context(), token.UID)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
+		// // Retrieve user information from PostgreSQL
+		// _, err = h.userUsecase.GetUser(c.Request().Context(), token.UID)
+		// if err != nil {
+		// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		// }
 
-		// Generate JWT
-		jwt, err := utils.GenerateJWT(token.UID)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
+		// // Generate JWT
+		// jwt, err := utils.GenerateJWT(token.UID)
+		// if err != nil {
+		// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		// }
 
-		return c.JSON(http.StatusOK, map[string]string{"jwt": jwt})
+		// return c.JSON(http.StatusOK, map[string]string{"jwt": jwt})
+		return nil
 	}
 }
 

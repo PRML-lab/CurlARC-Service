@@ -4,12 +4,16 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"context"
+	"errors"
+
+	"firebase.google.com/go/v4/auth"
+	"gorm.io/gorm"
 )
 
 // UserUsecase はユーザー関連のユースケースを定義するインターフェースです。
 type UserUsecase interface {
 	// SignUp は新しいユーザーを登録します。
-	SignUp(ctx context.Context, id, name, email, teamIds string) error
+	SignUp(ctx context.Context, name, email, password string, teamIds []string) error
 	// SignIn はユーザーのログインを処理します。
 	// SignIn(ctx context.Context, token string) (*model.User, error)
 	// GetAllUsers は全てのユーザー情報を取得します。
@@ -27,34 +31,40 @@ type UserUsecase interface {
 }
 
 type userUsecase struct {
-	userRepo repository.UserRepository
+	userRepo   repository.UserRepository
+	authClient *auth.Client
 }
 
-func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
-	userUsecase := userUsecase{userRepo: userRepo}
-	return &userUsecase
+func NewUserUsecase(userRepo repository.UserRepository, authCli *auth.Client) UserUsecase {
+	return &userUsecase{userRepo: userRepo, authClient: authCli}
 }
 
-func (usecase *userUsecase) SignUp(ctx context.Context, id, name, email, teamIds string) (err error) {
-	// email が既に登録されているか確認
-	_, err = usecase.userRepo.FindByEmail(email)
-	if err == nil {
-		return repository.ErrEmailExists
-	} else if err != repository.ErrUserNotFound {
+func (usecase *userUsecase) SignUp(ctx context.Context, name, email, password string, teamIds []string) (err error) {
+	// Firebase Auth でユーザーを作成
+	params := (&auth.UserToCreate{}).
+		Email(email).
+		Password(password)
+
+	firebaseUser, err := usecase.authClient.CreateUser(ctx, params)
+	if err != nil {
 		return err
 	}
 
-	// ユーザーを登録
-	newUser := &model.User{
-		Id:      id,
+	// ユーザー情報をDBに保存
+	user := &model.User{
+		Id:      firebaseUser.UID,
 		Name:    name,
 		Email:   email,
 		TeamIds: teamIds,
 	}
-	_, err = usecase.userRepo.Save(newUser)
-	if err != nil {
+
+	if _, err := usecase.userRepo.Save(user); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return repository.ErrEmailExists
+		}
 		return err
 	}
+
 	return nil
 }
 
