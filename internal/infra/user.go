@@ -23,15 +23,6 @@ func (userRepo *UserRepository) Save(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-func (userRepo *UserRepository) AuthUser(email, token string) (*model.User, error) {
-	user := new(model.User)
-	result := userRepo.SqlHandler.Conn.Where("email = ? AND password = ?", email, token).First(user)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return user, nil
-}
-
 func (userRepo *UserRepository) FindAll() ([]*model.User, error) {
 	users := []*model.User{}
 	result := userRepo.SqlHandler.Conn.Find(&users)

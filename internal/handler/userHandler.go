@@ -60,8 +60,14 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 
 		// リクエストをユースケースに渡す
 		user, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
+		if err != nil {
+			if err == repository.ErrUserNotFound {
+				return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
+			}
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 
-		// Generate JWT
+		// JWT 発行
 		jwt, err := utils.GenerateJWT(user.Id)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
