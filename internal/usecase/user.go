@@ -14,8 +14,8 @@ import (
 type UserUsecase interface {
 	// SignUp は新しいユーザーを登録します。
 	SignUp(ctx context.Context, name, email, password string, teamIds []string) error
-	// SignIn はユーザーのログインを処理します。
-	// SignIn(ctx context.Context, token string) (*model.User, error)
+	// AuthUser はユーザーを認証します。
+	AuthUser(ctx context.Context, id_token string) (*model.User, error)
 	// GetAllUsers は全てのユーザー情報を取得します。
 	GetAllUsers(ctx context.Context) ([]*model.User, error)
 	// GetUser はログイン中のユーザー情報を取得します。
@@ -68,8 +68,20 @@ func (usecase *userUsecase) SignUp(ctx context.Context, name, email, password st
 	return nil
 }
 
-func (usecase *userUsecase) SignIn(ctx context.Context, email, token string) (*model.User, error) {
-	return usecase.userRepo.AuthUser(email, token)
+func (usecase *userUsecase) AuthUser(ctx context.Context, id_token string) (*model.User, error) {
+	// Verify the ID token
+	authToken, err := usecase.authClient.VerifyIDToken(context.Background(), id_token)
+	if err != nil {
+		return nil, repository.ErrUnauthorized
+	}
+
+	// Find the user by UID
+	user, err := usecase.userRepo.FindById(authToken.UID)
+	if err != nil {
+		return nil, repository.ErrUserNotFound
+	}
+
+	return user, nil
 }
 
 func (usecase *userUsecase) GetAllUsers(ctx context.Context) ([]*model.User, error) {

@@ -4,6 +4,7 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/usecase"
+	"CurlARC/internal/utils"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -57,26 +58,16 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
 
-		// // Verify the ID token
-		// token, err := h.authClient.VerifyIDToken(context.Background(), req.IdToken)
-		// if err != nil {
-		// 	return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid token"})
-		// }
+		// リクエストをユースケースに渡す
+		user, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
 
-		// // Retrieve user information from PostgreSQL
-		// _, err = h.userUsecase.GetUser(c.Request().Context(), token.UID)
-		// if err != nil {
-		// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		// }
+		// Generate JWT
+		jwt, err := utils.GenerateJWT(user.Id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 
-		// // Generate JWT
-		// jwt, err := utils.GenerateJWT(token.UID)
-		// if err != nil {
-		// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		// }
-
-		// return c.JSON(http.StatusOK, map[string]string{"jwt": jwt})
-		return nil
+		return c.JSON(http.StatusOK, map[string]string{"jwt": jwt})
 	}
 }
 
