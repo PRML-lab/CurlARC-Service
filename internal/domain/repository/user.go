@@ -8,13 +8,12 @@ import (
 var (
 	ErrUserNotFound = errors.New("user not found")
 	ErrEmailExists  = errors.New("email already exists")
+	ErrUnauthorized = errors.New("unauthorized")
 )
 
 // UserRepository interface
 type UserRepository interface {
 	Save(user *model.User) (*model.User, error)
-	//
-	AuthUser(email, token string) (*model.User, error)
 	FindAll() ([]*model.User, error)
 	FindById(id string) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
