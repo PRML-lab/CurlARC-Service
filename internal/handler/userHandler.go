@@ -42,7 +42,7 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		return c.JSON(http.StatusOK, err)
+		return c.JSON(http.StatusOK, map[string]string{"message": "success"})
 	}
 }
 

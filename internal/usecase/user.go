@@ -50,7 +50,6 @@ func (usecase *userUsecase) SignUp(ctx context.Context, name, email, password st
 		return err
 	}
 
-	// ユーザー情報をDBに保存
 	user := &model.User{
 		Id:      firebaseUser.UID,
 		Name:    name,
@@ -62,6 +61,7 @@ func (usecase *userUsecase) SignUp(ctx context.Context, name, email, password st
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return repository.ErrEmailExists
 		}
+		_ = usecase.authClient.DeleteUser(ctx, firebaseUser.UID) // dbへの保存が失敗したらfirebase上のユーザーも削除
 		return err
 	}
 
