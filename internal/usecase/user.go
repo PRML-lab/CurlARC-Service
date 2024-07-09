@@ -5,6 +5,7 @@ import (
 	"CurlARC/internal/domain/repository"
 	"context"
 	"errors"
+	"fmt"
 
 	"firebase.google.com/go/v4/auth"
 	"gorm.io/gorm"
@@ -13,7 +14,7 @@ import (
 // UserUsecase はユーザー関連のユースケースを定義するインターフェースです。
 type UserUsecase interface {
 	// SignUp は新しいユーザーを登録します。
-	SignUp(ctx context.Context, name, email, password string, teamIds []string) error
+	SignUp(ctx context.Context, idToken, name, email string, teamIds []string) error
 	// AuthUser はユーザーを認証します。
 	AuthUser(ctx context.Context, id_token string) (*model.User, error)
 	// GetAllUsers は全てのユーザー情報を取得します。
@@ -39,19 +40,17 @@ func NewUserUsecase(userRepo repository.UserRepository, authCli *auth.Client) Us
 	return &userUsecase{userRepo: userRepo, authClient: authCli}
 }
 
-func (usecase *userUsecase) SignUp(ctx context.Context, name, email, password string, teamIds []string) (err error) {
-	// Firebase Auth でユーザーを作成
-	params := (&auth.UserToCreate{}).
-		Email(email).
-		Password(password)
-
-	firebaseUser, err := usecase.authClient.CreateUser(ctx, params)
+func (usecase *userUsecase) SignUp(ctx context.Context, idToken, name, email string, teamIds []string) (err error) {
+	// idTokenを検証
+	token, err := usecase.authClient.VerifyIDToken(ctx, idToken)
 	if err != nil {
-		return err
+		fmt.Print(err)
+		return repository.ErrUnauthorized
 	}
 
+	// ユーザーをdbに保存
 	user := &model.User{
-		Id:      firebaseUser.UID,
+		Id:      token.UID,
 		Name:    name,
 		Email:   email,
 		TeamIds: teamIds,
@@ -61,7 +60,7 @@ func (usecase *userUsecase) SignUp(ctx context.Context, name, email, password st
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return repository.ErrEmailExists
 		}
-		usecase.authClient.DeleteUser(ctx, firebaseUser.UID) // dbへの保存が失敗したらfirebase上のユーザーも削除
+		usecase.authClient.DeleteUser(ctx, token.UID) // dbへの保存が失敗したらfirebase上のユーザーも削除
 		return err
 	}
 

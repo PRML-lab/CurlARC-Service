@@ -23,10 +23,10 @@ func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
 func (h *UserHandler) SignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req struct {
-			Name     string         `json:"name"`
-			Email    string         `json:"email"`
-			Password string         `json:"password"`
-			TeamIds  pq.StringArray `json:"team_ids"`
+			IdToken string         `json:"id_token"`
+			Name    string         `json:"name"`
+			Email   string         `json:"email"`
+			TeamIds pq.StringArray `json:"team_ids"`
 		}
 
 		// リクエストのバインド
@@ -35,9 +35,11 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 		}
 
 		// ユースケースにリクエストを渡す
-		err := h.userUsecase.SignUp(c.Request().Context(), req.Name, req.Email, req.Password, req.TeamIds)
+		err := h.userUsecase.SignUp(c.Request().Context(), req.IdToken, req.Name, req.Email, req.TeamIds)
 		if err != nil {
-			if err == repository.ErrEmailExists {
+			if err == repository.ErrUnauthorized {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid id token"})
+			} else if err == repository.ErrEmailExists {
 				return c.JSON(http.StatusConflict, map[string]string{"error": "email already exists"})
 			}
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -73,7 +75,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		return c.JSON(http.StatusOK, map[string]string{"jwt": jwt})
+		return c.JSON(http.StatusOK, map[string]string{"jwt": jwt, "user_id": user.Id, "name": user.Name, "email": user.Email})
 	}
 }
 

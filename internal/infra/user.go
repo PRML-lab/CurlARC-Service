@@ -35,7 +35,7 @@ func (userRepo *UserRepository) FindAll() ([]*model.User, error) {
 
 func (userRepo *UserRepository) FindById(id string) (*model.User, error) {
 	user := new(model.User)
-	result := userRepo.SqlHandler.Conn.First(user, id)
+	result := userRepo.SqlHandler.Conn.Where("id = ?", id).First(user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
