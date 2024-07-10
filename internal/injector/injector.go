@@ -5,6 +5,12 @@ import (
 	"CurlARC/internal/handler"
 	"CurlARC/internal/infra"
 	"CurlARC/internal/usecase"
+	"context"
+	"log"
+
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
+	"google.golang.org/api/option"
 )
 
 func InjectDB() infra.SqlHandler {
@@ -19,9 +25,25 @@ func InjectUserRepository() repository.UserRepository {
 	return infra.NewUserRepository(sqlHandler)
 }
 
+func InjectFirebaseAuthClient() *auth.Client {
+	opt := option.WithCredentialsFile("service_account_file.json")
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+
+	authClient, err := app.Auth(context.Background())
+	if err != nil {
+		log.Fatalf("error getting Auth client: %v\n", err)
+	}
+
+	return authClient
+}
+
 func InjectUserUsecase() usecase.UserUsecase {
 	userRepo := InjectUserRepository()
-	return usecase.NewUserUsecase(userRepo)
+	authClient := InjectFirebaseAuthClient()
+	return usecase.NewUserUsecase(userRepo, authClient)
 }
 
 func InjectUserHandler() handler.UserHandler {

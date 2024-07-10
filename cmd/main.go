@@ -3,31 +3,32 @@ package main
 import (
 	"CurlARC/internal/handler"
 	"CurlARC/internal/injector"
-	"fmt"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
-// func main() {
-// 	if err := run(context.Background()); err != nil {
-// 		slog.Error("failed to terminated server", "error", err)
-// 		os.Exit(1)
-// 	}
-// }
-
-// func run(ctx context.Context) error {
-// 	if err := config.Init(); err != nil {
-// 		return err
-// 	}
-
-// 	srv := server.NewServer()
-// 	return srv.Run(ctx)
-// }
-
 func main() {
-	fmt.Println("sever start")
-	userHandler := injector.InjectUserHandler()
+
 	e := echo.New()
+
+	// Middleware
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	// CORS
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"}, // 許可するオリジンのリスト
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization},
+	}))
+
+	// Handler
+	userHandler := injector.InjectUserHandler()
+
+	// Routing
 	handler.InitRouting(e, userHandler)
 	e.Logger.Fatal(e.Start(":8080"))
 }

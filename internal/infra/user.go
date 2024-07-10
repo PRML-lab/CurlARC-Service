@@ -3,6 +3,7 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"fmt"
 )
 
 type UserRepository struct {
@@ -14,7 +15,7 @@ func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
 	return &userRepository
 }
 
-func (userRepo *UserRepository) CreateUser(user *model.User) (*model.User, error) {
+func (userRepo *UserRepository) Save(user *model.User) (*model.User, error) {
 	result := userRepo.SqlHandler.Conn.Create(user)
 	if result.Error != nil {
 		return user, result.Error
@@ -22,18 +23,19 @@ func (userRepo *UserRepository) CreateUser(user *model.User) (*model.User, error
 	return user, nil
 }
 
-func (userRepo *UserRepository) AuthUser(email, token string) (*model.User, error) {
-	user := new(model.User)
-	result := userRepo.SqlHandler.Conn.Where("email = ? AND password = ?", email, token).First(user)
+func (userRepo *UserRepository) FindAll() ([]*model.User, error) {
+	users := []*model.User{}
+	result := userRepo.SqlHandler.Conn.Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return user, nil
+	fmt.Print(result, users)
+	return users, nil
 }
 
 func (userRepo *UserRepository) FindById(id string) (*model.User, error) {
 	user := new(model.User)
-	result := userRepo.SqlHandler.Conn.First(user, id)
+	result := userRepo.SqlHandler.Conn.Where("id = ?", id).First(user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
