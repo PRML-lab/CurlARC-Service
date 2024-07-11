@@ -3,10 +3,8 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"fmt"
-	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -17,21 +15,18 @@ type SqlHandler struct {
 
 func NewSqlHandler() *SqlHandler {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
-
 	// 環境変数から接続情報を取得
 	host := os.Getenv("DATABASE_HOST")
-	user := os.Getenv("DATABASE_USER")
-	password := os.Getenv("DATABASE_PASSWORD")
 	dbname := os.Getenv("DATABASE_NAME")
-	port := os.Getenv("DATABASE_PORT")
-	tz := os.Getenv("DATABASE_TZ")
+	password := os.Getenv("DATABASE_PASSWORD")
+	user := os.Getenv("DATABASE_USER")
+	// port := os.Getenv("DATABASE_PORT")
+	// tz := os.Getenv("DATABASE_TZ")
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s TimeZone=%s",
-		host, user, password, dbname, port, tz)
+	// dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s TimeZone=%s",
+	// 	host, user, password, dbname, port, tz)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
+		host, user, password, dbname)
 
 	// データベースへの接続
 	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})

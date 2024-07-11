@@ -3,10 +3,19 @@ package main
 import (
 	"CurlARC/internal/handler"
 	"CurlARC/internal/injector"
+	"fmt"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
+
+func loadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+}
 
 func main() {
 
@@ -24,6 +33,9 @@ func main() {
 			echo.HeaderAccept,
 			echo.HeaderAuthorization},
 	}))
+
+	// environment variables
+	loadEnv()
 
 	// Handler
 	userHandler := injector.InjectUserHandler()
