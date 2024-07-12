@@ -3,6 +3,7 @@ package main
 import (
 	"CurlARC/internal/handler"
 	"CurlARC/internal/injector"
+	"CurlARC/internal/utils"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -17,13 +18,16 @@ func main() {
 	e.Use(middleware.Recover())
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"}, // 許可するオリジンのリスト
+		AllowOrigins: utils.GetAllowOrigins(), // 許可するオリジンのリスト
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
 			echo.HeaderAccept,
 			echo.HeaderAuthorization},
 	}))
+
+	// environment variables
+	utils.LoadEnv()
 
 	// Handler
 	userHandler := injector.InjectUserHandler()
