@@ -3,19 +3,11 @@ package main
 import (
 	"CurlARC/internal/handler"
 	"CurlARC/internal/injector"
-	"fmt"
+	"CurlARC/internal/utils"
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
-
-func loadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-}
 
 func main() {
 
@@ -26,7 +18,7 @@ func main() {
 	e.Use(middleware.Recover())
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"}, // 許可するオリジンのリスト
+		AllowOrigins: utils.GetAllowOrigins(), // 許可するオリジンのリスト
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
@@ -35,7 +27,7 @@ func main() {
 	}))
 
 	// environment variables
-	loadEnv()
+	utils.LoadEnv()
 
 	// Handler
 	userHandler := injector.InjectUserHandler()
