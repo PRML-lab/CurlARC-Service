@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	// environment variables
+	utils.LoadEnv()
 
 	e := echo.New()
 
@@ -25,9 +27,6 @@ func main() {
 			echo.HeaderAccept,
 			echo.HeaderAuthorization},
 	}))
-
-	// environment variables
-	utils.LoadEnv()
 
 	// Handler
 	userHandler := injector.InjectUserHandler()
