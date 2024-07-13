@@ -91,12 +91,9 @@ func (h *UserHandler) GetAllUser() echo.HandlerFunc {
 // ユーザー情報の取得
 func (h *UserHandler) GetUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var req request.GetUserRequest
-		if err := c.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
-		}
+		id := c.Get("uid").(string)
 
-		user, err := h.userUsecase.GetUser(c.Request().Context(), req.Id)
+		user, err := h.userUsecase.GetUser(c.Request().Context(), id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -119,11 +116,12 @@ func (h *UserHandler) UpdateUser() echo.HandlerFunc {
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
 		}
+		id := c.Get("uid").(string)
 
-		if err := h.userUsecase.UpdateUser(c.Request().Context(), req.Id, req.Name, req.Email, req.TeamIds); err != nil {
+		if err := h.userUsecase.UpdateUser(c.Request().Context(), id, req.Name, req.Email, req.TeamIds); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusNoContent)
 	}
 }
 
@@ -138,6 +136,6 @@ func (h *UserHandler) DeleteUser() echo.HandlerFunc {
 		if err := h.userUsecase.DeleteUser(c.Request().Context(), req.Id); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusNoContent)
 	}
 }

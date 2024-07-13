@@ -17,7 +17,6 @@ type GetUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Id      string         `json:"id"`
 	Name    string         `json:"name"`
 	Email   string         `json:"email"`
 	TeamIds pq.StringArray `json:"team_ids"`
