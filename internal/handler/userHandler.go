@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/usecase"
 	"CurlARC/internal/utils"
@@ -23,10 +22,9 @@ func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
 func (h *UserHandler) SignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req struct {
-			IdToken string         `json:"id_token"`
-			Name    string         `json:"name"`
-			Email   string         `json:"email"`
-			TeamIds pq.StringArray `json:"team_ids"`
+			IdToken string `json:"id_token"`
+			Name    string `json:"name"`
+			Email   string `json:"email"`
 		}
 
 		// リクエストのバインド
@@ -35,7 +33,7 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 		}
 
 		// ユースケースにリクエストを渡す
-		err := h.userUsecase.SignUp(c.Request().Context(), req.IdToken, req.Name, req.Email, req.TeamIds)
+		err := h.userUsecase.SignUp(c.Request().Context(), req.IdToken, req.Name, req.Email)
 		if err != nil {
 			if err == repository.ErrUnauthorized {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid id token"})
@@ -93,8 +91,14 @@ func (h *UserHandler) GetAllUser() echo.HandlerFunc {
 // ユーザー情報の取得
 func (h *UserHandler) GetUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID := c.Get("userID").(string)
-		user, err := h.userUsecase.GetUser(c.Request().Context(), userID)
+		var req struct {
+			Id string `json:"id"`
+		}
+		if err := c.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
+		}
+
+		user, err := h.userUsecase.GetUser(c.Request().Context(), req.Id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -105,13 +109,17 @@ func (h *UserHandler) GetUser() echo.HandlerFunc {
 // ユーザー情報の更新
 func (h *UserHandler) UpdateUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userId := c.Get("userID").(string)
-		var user model.User
-		if err := c.Bind(&user); err != nil {
+		var req struct {
+			IdToken string         `json:"id_token"`
+			Name    string         `json:"name"`
+			Email   string         `json:"email"`
+			TeamIds pq.StringArray `json:"team_ids"`
+		}
+		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
 		}
-		user.Id = userId
-		if err := h.userUsecase.UpdateUser(c.Request().Context(), &user); err != nil {
+
+		if err := h.userUsecase.UpdateUser(c.Request().Context(), req.IdToken, req.Name, req.Email, req.TeamIds); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)

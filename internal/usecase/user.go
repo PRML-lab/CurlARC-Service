@@ -11,23 +11,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// UserUsecase はユーザー関連のユースケースを定義するインターフェースです。
 type UserUsecase interface {
-	// SignUp は新しいユーザーを登録します。
-	SignUp(ctx context.Context, idToken, name, email string, teamIds []string) error
-	// AuthUser はユーザーを認証します。
-	AuthUser(ctx context.Context, id_token string) (*model.User, error)
-	// GetAllUsers は全てのユーザー情報を取得します。
-	GetAllUsers(ctx context.Context) ([]*model.User, error)
-	// GetUser はログイン中のユーザー情報を取得します。
+	// CRUD
+	SignUp(ctx context.Context, idToken, name, email string) error
 	GetUser(ctx context.Context, id string) (*model.User, error)
-	// UpdateUser はユーザー情報を更新します。
-	UpdateUser(ctx context.Context, user *model.User) error
-	// DeleteUser はユーザーを削除します。
+	UpdateUser(ctx context.Context, id, name, email string, teamIds []string) error
 	DeleteUser(ctx context.Context, userID string) error
-	// // AcceptTeamInvitation はチームへの招待を承認します。
+
+	AuthUser(ctx context.Context, id_token string) (*model.User, error)
+	GetAllUsers(ctx context.Context) ([]*model.User, error)
+
+	// Team関連
 	// AcceptTeamInvitation(ctx context.Context, userID, teamID string) error
-	// // RejectTeamInvitation はチームへの招待を拒否します。
 	// RejectTeamInvitation(ctx context.Context, userID, teamID string) error
 }
 
@@ -40,7 +35,7 @@ func NewUserUsecase(userRepo repository.UserRepository, authCli *auth.Client) Us
 	return &userUsecase{userRepo: userRepo, authClient: authCli}
 }
 
-func (usecase *userUsecase) SignUp(ctx context.Context, idToken, name, email string, teamIds []string) (err error) {
+func (usecase *userUsecase) SignUp(ctx context.Context, idToken, name, email string) (err error) {
 	// idTokenを検証
 	token, err := usecase.authClient.VerifyIDToken(ctx, idToken)
 	if err != nil {
@@ -53,7 +48,7 @@ func (usecase *userUsecase) SignUp(ctx context.Context, idToken, name, email str
 		Id:      token.UID,
 		Name:    name,
 		Email:   email,
-		TeamIds: teamIds,
+		TeamIds: []string{},
 	}
 
 	if _, err := usecase.userRepo.Save(user); err != nil {
@@ -87,11 +82,19 @@ func (usecase *userUsecase) GetAllUsers(ctx context.Context) ([]*model.User, err
 	return usecase.userRepo.FindAll()
 }
 
-func (usecase *userUsecase) GetUser(ctx context.Context, userID string) (*model.User, error) {
-	return usecase.userRepo.FindById(userID)
+func (usecase *userUsecase) GetUser(ctx context.Context, id string) (*model.User, error) {
+	return usecase.userRepo.FindById(id)
 }
 
-func (usecase *userUsecase) UpdateUser(ctx context.Context, user *model.User) error {
+func (usecase *userUsecase) UpdateUser(ctx context.Context, id, name, email string, teamIds []string) error {
+
+	// ユーザーをdbに保存
+	user := &model.User{
+		Id:      id,
+		Name:    name,
+		Email:   email,
+		TeamIds: teamIds,
+	}
 	return usecase.userRepo.Update(user)
 }
 
