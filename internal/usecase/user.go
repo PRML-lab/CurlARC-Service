@@ -16,7 +16,7 @@ type UserUsecase interface {
 	SignUp(ctx context.Context, idToken, name, email string) error
 	GetUser(ctx context.Context, id string) (*model.User, error)
 	UpdateUser(ctx context.Context, id, name, email string, teamIds []string) error
-	DeleteUser(ctx context.Context, userID string) error
+	DeleteUser(ctx context.Context, id string) error
 
 	AuthUser(ctx context.Context, id_token string) (*model.User, error)
 	GetAllUsers(ctx context.Context) ([]*model.User, error)
@@ -88,6 +88,16 @@ func (usecase *userUsecase) GetUser(ctx context.Context, id string) (*model.User
 
 func (usecase *userUsecase) UpdateUser(ctx context.Context, id, name, email string, teamIds []string) error {
 
+	// Firebase上のユーザー情報を更新
+	params := (&auth.UserToUpdate{}).
+		Email(email).
+		DisplayName(name)
+
+	_, err := usecase.authClient.UpdateUser(ctx, id, params)
+	if err != nil {
+		return err
+	}
+
 	// ユーザーをdbに保存
 	user := &model.User{
 		Id:      id,
@@ -95,9 +105,16 @@ func (usecase *userUsecase) UpdateUser(ctx context.Context, id, name, email stri
 		Email:   email,
 		TeamIds: teamIds,
 	}
+
 	return usecase.userRepo.Update(user)
 }
 
-func (usecase *userUsecase) DeleteUser(ctx context.Context, userID string) error {
-	return usecase.userRepo.Delete(userID)
+func (usecase *userUsecase) DeleteUser(ctx context.Context, id string) error {
+	// Firebase上のユーザー情報を削除
+	err := usecase.authClient.DeleteUser(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return usecase.userRepo.Delete(id)
 }
