@@ -23,8 +23,6 @@ func NewSqlHandler() *SqlHandler {
 	// port := os.Getenv("DATABASE_PORT")
 	// tz := os.Getenv("DATABASE_TZ")
 
-	// dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s TimeZone=%s",
-	// 	host, user, password, dbname, port, tz)
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
 		host, user, password, dbname)
 

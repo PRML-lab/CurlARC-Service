@@ -16,9 +16,9 @@ func InitRouting(e *echo.Echo, userHandler UserHandler) {
 	// 認証が必要なルートにミドルウェアを適用
 	authGroup := e.Group("/auth")
 	authGroup.Use(middleware.JWTMiddleware)
-	authGroup.GET("/user", userHandler.GetUser())
-	authGroup.PATCH("/user", userHandler.UpdateUser())
-	authGroup.DELETE("/user", userHandler.DeleteUser())
+	authGroup.GET("/me", userHandler.GetUser())
+	authGroup.PATCH("/me", userHandler.UpdateUser())
+	authGroup.DELETE("/me", userHandler.DeleteUser())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "healthy!")
