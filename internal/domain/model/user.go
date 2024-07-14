@@ -7,7 +7,6 @@ type User struct {
 	Name    string         `json:"name"`
 	Email   string         `json:"email"`
 	TeamIds pq.StringArray `json:"team_ids" gorm:"type:text[]"`
-	// TeamIds string `json:"team_ids"`
 }
 
 type Users []User
