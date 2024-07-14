@@ -33,7 +33,14 @@ func NewSqlHandler() *SqlHandler {
 	}
 
 	// マイグレーション
-	err = conn.AutoMigrate(&model.User{}, &model.Team{}, &model.Record{})
+	err = conn.AutoMigrate(
+		&model.User{},
+		&model.Team{},
+		&model.UserTeam{},
+		&model.Record{},
+		&model.End{},
+		&model.Shot{},
+		&model.Coordinate{})
 	if err != nil {
 		panic(err.Error)
 	}
