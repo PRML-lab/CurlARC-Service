@@ -9,23 +9,55 @@ import (
 
 type RecordUsecase interface {
 	// CRUD
-	CreateRecord(ctx context.Context, teamId string, place string, date time.Time) (*model.Record, error)
-	GetRecord(ctx context.Context, Id string) (*model.Record, error)
-	UpdateRecord(ctx context.Context, Id string, teamId string, place string, date time.Time) error
-	DeleteRecord(ctx context.Context, Id string) error
+	CreateRecord(
+		ctx context.Context,
+		teamId string,
+		place string,
+		date time.Time,
+	) (*model.Record, error)
+
+	GetRecord(
+		ctx context.Context,
+		Id string,
+	) (*model.Record, error)
+
+	GetRecordsByTeamId(
+		ctx context.Context,
+		teamId string,
+	) ([]*model.Record, error)
+
+	UpdateRecord(
+		ctx context.Context,
+		Id string,
+		teamId string,
+		place string,
+		date time.Time,
+	) error
+
+	DeleteRecord(
+		ctx context.Context,
+		Id string,
+	) error
 }
 
 type recordUsecase struct {
 	recordRepo repository.RecordRepository
 	endRepo    repository.EndRepository
 	shotRepo   repository.ShotRepository
+	coordRepo  repository.CoordinateRepository
 }
 
-func NewRecordUsecase(recordRepo repository.RecordRepository, endRepo repository.EndRepository, shotRepo repository.ShotRepository) RecordUsecase {
+func NewRecordUsecase(
+	recordRepo repository.RecordRepository,
+	endRepo repository.EndRepository,
+	shotRepo repository.ShotRepository,
+	coordRepo repository.CoordinateRepository,
+) RecordUsecase {
 	return &recordUsecase{
 		recordRepo: recordRepo,
 		endRepo:    endRepo,
 		shotRepo:   shotRepo,
+		coordRepo:  coordRepo,
 	}
 }
 
@@ -47,6 +79,10 @@ func (r *recordUsecase) GetRecord(ctx context.Context, recordId string) (*model.
 		return nil, err
 	}
 	return record, nil
+}
+
+func (r *recordUsecase) GetRecordsByTeamId(ctx context.Context, teamId string) ([]*model.Record, error) {
+	return r.recordRepo.GetByTeamId(ctx, teamId)
 }
 
 func (r *recordUsecase) UpdateRecord(ctx context.Context, recordId string, teamId string, place string, date time.Time) error {
