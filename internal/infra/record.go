@@ -4,6 +4,8 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"context"
+	"encoding/json"
+	"time"
 )
 
 type RecordRepository struct {
@@ -15,129 +17,56 @@ func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 	return &recordRepository
 }
 
-func (recordRepo *RecordRepository) Create(ctx context.Context, record *model.Record) error {
-	result := recordRepo.SqlHandler.Conn.Create(record)
-	if result.Error != nil {
-		return result.Error
+func (r *RecordRepository) Create(ctx context.Context, teamId, place string, date time.Time, endsData []model.DataPerEnd) (*model.Record, error) {
+	endsDataJSON, err := json.Marshal(endsData)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
 
-func (recordRepo *RecordRepository) GetById(ctx context.Context, Id string) (*model.Record, error) {
-	record := new(model.Record)
-	result := recordRepo.SqlHandler.Conn.Where("id = ?", Id).First(record)
-	if result.Error != nil {
-		return nil, result.Error
+	record := &model.Record{
+		Place:    place,
+		Date:     date,
+		TeamId:   teamId,
+		EndsData: endsDataJSON,
 	}
+
+	if err := r.Conn.WithContext(ctx).Create(record).Error; err != nil {
+		return nil, err
+	}
+
 	return record, nil
 }
 
-func (recordRepo *RecordRepository) GetByTeamId(ctx context.Context, teamId string) ([]*model.Record, error) {
-	var records []*model.Record
-	result := recordRepo.SqlHandler.Conn.Where("team_id = ?", teamId).Find(&records)
-	if result.Error != nil {
-		return nil, result.Error
+func (r *RecordRepository) GetById(ctx context.Context, id string) (*model.Record, error) {
+	var record model.Record
+	if err := r.Conn.WithContext(ctx).First(&record, "id = ?", id).Error; err != nil {
+		return nil, err
 	}
-	return records, nil
+	return &record, nil
 }
 
-func (recordRepo *RecordRepository) Update(ctx context.Context, record *model.Record) error {
-	result := recordRepo.SqlHandler.Conn.Save(record)
-	if result.Error != nil {
-		return result.Error
+func (r *RecordRepository) Update(ctx context.Context, id, teamId, place string, date time.Time, endsData []model.DataPerEnd) error {
+	endsDataJSON, err := json.Marshal(endsData)
+	if err != nil {
+		return err
 	}
-	return nil
-}
 
-func (recordRepo *RecordRepository) Delete(ctx context.Context, Id string) error {
-	result := recordRepo.SqlHandler.Conn.Delete(&model.Record{}, Id)
-	if result.Error != nil {
-		return result.Error
+	updateData := map[string]interface{}{
+		"team_id":   teamId,
+		"place":     place,
+		"date":      date,
+		"ends_data": endsDataJSON,
 	}
-	return nil
-}
 
-type EndRepository struct {
-	SqlHandler
-}
-
-func NewEndRepository(sqlHandler SqlHandler) repository.EndRepository {
-	endRepository := EndRepository{SqlHandler: sqlHandler}
-	return &endRepository
-}
-
-func (endRepo *EndRepository) Create(ctx context.Context, end *model.End) error {
-	result := endRepo.SqlHandler.Conn.Create(end)
-	if result.Error != nil {
-		return result.Error
+	if err := r.Conn.WithContext(ctx).Model(&model.Record{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
+		return err
 	}
 	return nil
 }
 
-func (endRepo *EndRepository) GetById(ctx context.Context, Id string) (*model.End, error) {
-	end := new(model.End)
-	result := endRepo.SqlHandler.Conn.Where("id = ?", Id).First(end)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return end, nil
-}
-
-func (endRepo *EndRepository) Update(ctx context.Context, end *model.End) error {
-	result := endRepo.SqlHandler.Conn.Save(end)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func (endRepo *EndRepository) Delete(ctx context.Context, Id string) error {
-	result := endRepo.SqlHandler.Conn.Delete(&model.End{}, Id)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-type ShotRepository struct {
-	SqlHandler
-}
-
-func NewShotRepository(sqlHandler SqlHandler) repository.ShotRepository {
-	shotRepository := ShotRepository{SqlHandler: sqlHandler}
-	return &shotRepository
-}
-
-func (shotRepo *ShotRepository) Create(ctx context.Context, shot *model.Shot) error {
-	result := shotRepo.SqlHandler.Conn.Create(shot)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func (shotRepo *ShotRepository) GetById(ctx context.Context, Id string) (*model.Shot, error) {
-
-	shot := new(model.Shot)
-	result := shotRepo.SqlHandler.Conn.Where("id = ?", Id).First(shot)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return shot, nil
-}
-
-func (shotRepo *ShotRepository) Update(ctx context.Context, shot *model.Shot) error {
-	result := shotRepo.SqlHandler.Conn.Save(shot)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func (shotRepo *ShotRepository) Delete(ctx context.Context, Id string) error {
-	result := shotRepo.SqlHandler.Conn.Delete(&model.Shot{}, Id)
-	if result.Error != nil {
-		return result.Error
+func (r *RecordRepository) Delete(ctx context.Context, id string) error {
+	if err := r.Conn.WithContext(ctx).Delete(&model.Record{}, "id = ?", id).Error; err != nil {
+		return err
 	}
 	return nil
 }

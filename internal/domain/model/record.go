@@ -2,37 +2,39 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type Record struct {
-	Id     string `gorm:"primaryKey"`
-	Place  string `gorm:"size:255"`
-	Date   time.Time
-	TeamId string
-	Team   Team `gorm:"foreignKey:TeamId"`
+	Id       string `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Place    string `gorm:"size:255"`
+	Date     time.Time
+	TeamId   string
+	Team     Team           `gorm:"foreignKey:TeamId"`
+	EndsData datatypes.JSON `gorm:"type:json"`
 }
 
-type End struct {
-	Id       string `gorm:"primaryKey"`
-	RecordId string
-	Record   Record `gorm:"foreignKey:RecordId"`
-	Score    int
+type DataPerEnd struct {
+	Id       string `json:"id"`
+	RecordId string `json:"record_id"`
+	Score    int    `json:"score"`
+	Shots    []Shot `json:"shots"`
 }
 
 type Shot struct {
-	Id          string `gorm:"primaryKey"`
-	EndId       string
-	End         End    `gorm:"foreignKey:EndId"`
-	Type        string `gorm:"size:255"`
-	SuccessRate float64
-	Shooter     string `gorm:"size:255"`
+	Id          string       `json:"id"`
+	EndId       string       `json:"end_id"`
+	Type        string       `json:"type"`
+	SuccessRate float64      `json:"success_rate"`
+	Shooter     string       `json:"shooter"`
+	Coordinates []Coordinate `json:"coordinates"`
 }
 
 type Coordinate struct {
-	Id          string `gorm:"primaryKey"`
-	ShotId      string
-	Shot        Shot `gorm:"foreignKey:ShotId"`
-	StoneNumber int
-	R           float64
-	Theta       float64
+	Id          string  `json:"id"`
+	ShotId      string  `json:"shot_id"`
+	StoneNumber int     `json:"stone_number"`
+	R           float64 `json:"r"`
+	Theta       float64 `json:"theta"`
 }
