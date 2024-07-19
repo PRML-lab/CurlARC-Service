@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-func InitRouting(e *echo.Echo, userHandler UserHandler) {
+func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler) {
 
 	e.POST("/signup", userHandler.SignUp())
 	e.POST("/signin", userHandler.SignIn())
@@ -19,6 +19,15 @@ func InitRouting(e *echo.Echo, userHandler UserHandler) {
 	authGroup.GET("/me", userHandler.GetUser())
 	authGroup.PATCH("/me", userHandler.UpdateUser())
 	authGroup.DELETE("/me", userHandler.DeleteUser())
+
+	//team
+	authGroup.POST("/teams", teamHandler.CreateTeam())
+	authGroup.GET("/teams", teamHandler.GetAllTeams())
+	authGroup.GET("/teams/:id", teamHandler.GetTeam())
+	authGroup.PATCH("/teams/:id", teamHandler.UpdateTeam())
+	authGroup.DELETE("/teams/:id", teamHandler.DeleteTeam())
+	authGroup.POST("/teams/:teamId/:userId", teamHandler.AddMember())
+	authGroup.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "healthy!")

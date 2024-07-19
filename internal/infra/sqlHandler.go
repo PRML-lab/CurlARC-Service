@@ -38,9 +38,7 @@ func NewSqlHandler() *SqlHandler {
 		&model.Team{},
 		&model.UserTeam{},
 		&model.Record{},
-		&model.End{},
-		&model.Shot{},
-		&model.Coordinate{})
+	)
 	if err != nil {
 		panic(err.Error)
 	}

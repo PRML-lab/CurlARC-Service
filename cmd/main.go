@@ -30,8 +30,9 @@ func main() {
 
 	// Handler
 	userHandler := injector.InjectUserHandler()
+	teamHandler := injector.InjectTeamHandler()
 
 	// Routing
-	handler.InitRouting(e, userHandler)
+	handler.InitRouting(e, userHandler, teamHandler)
 	e.Logger.Fatal(e.Start(":8080"))
 }
