@@ -2,6 +2,7 @@ package handler
 
 import (
 	"CurlARC/internal/handler/request"
+	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
 	"net/http"
 
@@ -20,15 +21,30 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req request.CreateTeamRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
 		}
 
 		err := h.teamUsecase.CreateTeam(req.Name)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.NoContent(http.StatusCreated)
+		return c.JSON(http.StatusCreated, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }
 
@@ -36,10 +52,27 @@ func (h *TeamHandler) GetAllTeams() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teams, err := h.teamUsecase.GetAllTeams()
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.JSON(http.StatusOK, teams)
+		responseTeams := make([]response.Team, 0, len(teams))
+		for _, team := range teams {
+			responseTeams = append(responseTeams, response.Team{
+				Id:   team.Id,
+				Name: team.Name,
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   responseTeams,
+		})
 	}
 }
 
@@ -48,10 +81,19 @@ func (h *TeamHandler) GetTeam() echo.HandlerFunc {
 		id := c.Param("id")
 		team, err := h.teamUsecase.GetTeam(id)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.JSON(http.StatusOK, team)
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   team,
+		})
 	}
 }
 
@@ -60,15 +102,30 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 		id := c.Param("id")
 		var req request.UpdateTeamRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
 		}
 
 		err := h.teamUsecase.UpdateTeam(id, req.Name)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }
 
@@ -77,37 +134,64 @@ func (h *TeamHandler) DeleteTeam() echo.HandlerFunc {
 		id := c.Param("id")
 		err := h.teamUsecase.DeleteTeam(id)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }
 
 func (h *TeamHandler) AddMember() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		teamId := c.Param("teamId")
-		userId := c.Param("userId")
+		teamID := c.Param("teamId")
+		userID := c.Param("userId")
 
-		err := h.teamUsecase.AddMember(teamId, userId)
+		err := h.teamUsecase.AddMember(teamID, userID)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.NoContent(http.StatusCreated)
+		return c.JSON(http.StatusCreated, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }
 
 func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		teamId := c.Param("teamId")
-		userId := c.Param("userId")
+		teamID := c.Param("teamId")
+		userID := c.Param("userId")
 
-		err := h.teamUsecase.RemoveMember(teamId, userId)
+		err := h.teamUsecase.RemoveMember(teamID, userID)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }
