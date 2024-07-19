@@ -8,8 +8,8 @@ type Record struct {
 	Id     string `gorm:"primaryKey"`
 	Place  string `gorm:"size:255"`
 	Date   time.Time
-	TeamId string
-	Team   Team `gorm:"foreignKey:TeamId"`
+	TeamId string `gorm:"type:uuid;default:uuid_generate_v4();"`
+	Team   Team   `gorm:"foreignKey:TeamId"`
 }
 
 type End struct {
