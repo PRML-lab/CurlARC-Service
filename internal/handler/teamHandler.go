@@ -195,3 +195,47 @@ func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 		})
 	}
 }
+
+func (h *TeamHandler) GetMembers() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		teamID := c.Param("teamId")
+
+		users, err := h.teamUsecase.GetMembersByTeamId(teamID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   users,
+		})
+	}
+}
+
+func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID := c.Get("uid").(string)
+
+		teams, err := h.teamUsecase.GetTeamsByUserId(userID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   teams,
+		})
+	}
+}

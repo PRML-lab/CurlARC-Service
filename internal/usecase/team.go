@@ -16,6 +16,8 @@ type TeamUsecase interface {
 	// User関連
 	AddMember(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
+	GetTeamsByUserId(userId string) ([]*model.Team, error)
+	GetMembersByTeamId(teamId string) ([]*model.User, error)
 }
 
 type teamUsecase struct {
@@ -112,4 +114,40 @@ func (usecase *teamUsecase) RemoveMember(teamId, userId string) error {
 	}
 
 	return nil
+}
+
+func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*model.Team, error) {
+	teamIds, err := usecase.userTeamRepo.FindTeamsByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var teams []*model.Team
+	for _, teamId := range teamIds {
+		team, err := usecase.teamRepo.FindById(teamId)
+		if err != nil {
+			return nil, err
+		}
+		teams = append(teams, team)
+	}
+
+	return teams, nil
+}
+
+func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*model.User, error) {
+	userIds, err := usecase.userTeamRepo.FindUsersByTeamId(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*model.User
+	for _, userId := range userIds {
+		user, err := usecase.userRepo.FindById(userId)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }
