@@ -117,11 +117,10 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 		}
 
 		res := response.SignInResponse{
-			Jwt:     jwt,
-			Id:      user.Id,
-			Name:    user.Name,
-			Email:   user.Email,
-			TeamIds: user.TeamIds,
+			Jwt:   jwt,
+			Id:    user.Id,
+			Name:  user.Name,
+			Email: user.Email,
 		}
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
@@ -169,10 +168,9 @@ func (h *UserHandler) GetUser() echo.HandlerFunc {
 		}
 
 		res := response.GetUserResponse{
-			Id:      user.Id,
-			Name:    user.Name,
-			Email:   user.Email,
-			TeamIds: user.TeamIds,
+			Id:    user.Id,
+			Name:  user.Name,
+			Email: user.Email,
 		}
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
@@ -197,7 +195,7 @@ func (h *UserHandler) UpdateUser() echo.HandlerFunc {
 		}
 		id := c.Get("uid").(string)
 
-		if err := h.userUsecase.UpdateUser(c.Request().Context(), id, req.Name, req.Email, req.TeamIds); err != nil {
+		if err := h.userUsecase.UpdateUser(c.Request().Context(), id, req.Name, req.Email); err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
 				Error: response.ErrorDetail{

@@ -15,7 +15,7 @@ type UserUsecase interface {
 	// CRUD
 	SignUp(ctx context.Context, idToken, name, email string) error
 	GetUser(ctx context.Context, id string) (*model.User, error)
-	UpdateUser(ctx context.Context, id, name, email string, teamIds []string) error
+	UpdateUser(ctx context.Context, id, name, email string) error
 	DeleteUser(ctx context.Context, id string) error
 
 	AuthUser(ctx context.Context, id_token string) (*model.User, error)
@@ -45,10 +45,9 @@ func (usecase *userUsecase) SignUp(ctx context.Context, idToken, name, email str
 
 	// ユーザーをdbに保存
 	user := &model.User{
-		Id:      token.UID,
-		Name:    name,
-		Email:   email,
-		TeamIds: []string{},
+		Id:    token.UID,
+		Name:  name,
+		Email: email,
 	}
 
 	if _, err := usecase.userRepo.Save(user); err != nil {
@@ -86,7 +85,7 @@ func (usecase *userUsecase) GetUser(ctx context.Context, id string) (*model.User
 	return usecase.userRepo.FindById(id)
 }
 
-func (usecase *userUsecase) UpdateUser(ctx context.Context, id, name, email string, teamIds []string) error {
+func (usecase *userUsecase) UpdateUser(ctx context.Context, id, name, email string) error {
 
 	// Firebase上のユーザー情報を更新
 	params := (&auth.UserToUpdate{}).
@@ -100,10 +99,9 @@ func (usecase *userUsecase) UpdateUser(ctx context.Context, id, name, email stri
 
 	// ユーザーをdbに保存
 	user := &model.User{
-		Id:      id,
-		Name:    name,
-		Email:   email,
-		TeamIds: teamIds,
+		Id:    id,
+		Name:  name,
+		Email: email,
 	}
 
 	return usecase.userRepo.Update(user)
