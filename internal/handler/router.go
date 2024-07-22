@@ -11,7 +11,15 @@ func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler)
 
 	e.POST("/signup", userHandler.SignUp())
 	e.POST("/signin", userHandler.SignIn())
-	e.GET("/users", userHandler.GetAllUsers())
+
+	// デバッグ用
+	debug := e.Group("/debug")
+	debug.GET("/users", userHandler.GetAllUsers())
+	debug.POST("/teams", teamHandler.CreateTeam())
+	debug.GET("/teams", teamHandler.GetAllTeams())
+	debug.GET("/teams/:teamId", teamHandler.GetMembers())
+	debug.POST("/teams/:teamId/:userId", teamHandler.AddMember())
+	debug.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
 
 	// 認証が必要なルートにミドルウェアを適用
 	authGroup := e.Group("/auth")
@@ -23,9 +31,11 @@ func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler)
 	//team
 	authGroup.POST("/teams", teamHandler.CreateTeam())
 	authGroup.GET("/teams", teamHandler.GetAllTeams())
-	authGroup.GET("/teams/:id", teamHandler.GetTeam())
-	authGroup.PATCH("/teams/:id", teamHandler.UpdateTeam())
-	authGroup.DELETE("/teams/:id", teamHandler.DeleteTeam())
+
+	authGroup.GET("/teams/:teamId", teamHandler.GetMembers())
+	authGroup.PATCH("/teams/:teamId", teamHandler.UpdateTeam())
+	authGroup.DELETE("/teams/:teamId", teamHandler.DeleteTeam())
+
 	authGroup.POST("/teams/:teamId/:userId", teamHandler.AddMember())
 	authGroup.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
 
