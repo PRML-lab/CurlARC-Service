@@ -8,4 +8,5 @@ type Team struct {
 type UserTeam struct {
 	UserId string `gorm:"primaryKey"`
 	TeamId string `gorm:"primaryKey"`
+	State  string `gorm:"size:255"` // "INVITED" or "MEMBER"
 }

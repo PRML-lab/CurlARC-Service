@@ -3,18 +3,20 @@ package usecase
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"errors"
 )
 
 type TeamUsecase interface {
 	// CRUD
-	CreateTeam(name string) error
+	CreateTeam(name, userId string) error
 	GetAllTeams() ([]*model.Team, error)
 	GetTeam(id string) (*model.Team, error)
 	UpdateTeam(id, name string) error
 	DeleteTeam(id string) error
 
 	// User関連
-	AddMember(teamId, userId string) error
+	InviteUser(teamId, userId string) error
+	AcceptInvitation(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
 	GetTeamsByUserId(userId string) ([]*model.Team, error)
 	GetMembersByTeamId(teamId string) ([]*model.User, error)
@@ -30,9 +32,20 @@ func NewTeamUsecase(teamRepo repository.TeamRepository, userRepo repository.User
 	return &teamUsecase{teamRepo: teamRepo, userRepo: userRepo, userTeamRepo: userTeamRepo}
 }
 
-func (usecase *teamUsecase) CreateTeam(name string) error {
+func (usecase *teamUsecase) CreateTeam(name, userId string) error {
 	team := &model.Team{Name: name}
-	_, err := usecase.teamRepo.Save(team)
+	createdTeam, err := usecase.teamRepo.Save(team)
+	if err != nil {
+		return err
+	}
+
+	// user-team tableに保存
+	_, err = usecase.userRepo.FindById(userId)
+	if err != nil {
+		return err
+	}
+
+	err = usecase.userTeamRepo.Save(userId, createdTeam.Id, "MEMBER")
 	if err != nil {
 		return err
 	}
@@ -76,7 +89,38 @@ func (usecase *teamUsecase) DeleteTeam(id string) error {
 	return nil
 }
 
-func (usecase *teamUsecase) AddMember(teamId, userId string) error {
+func (usecase *teamUsecase) InviteUser(teamId, userId string) error {
+	// Check existence of team and user
+	_, err := usecase.teamRepo.FindById(teamId)
+	if err != nil {
+		return err
+	}
+	_, err = usecase.userRepo.FindById(userId)
+	if err != nil {
+		return err
+	}
+	// Check if the inviter is a member of the team
+	isMember, err := usecase.userTeamRepo.IsMember(userId, teamId)
+	if err != nil {
+		return err
+	}
+	if !isMember {
+		return errors.New("inviter is not a member of the team")
+	}
+
+	// Add user to team with "INVITED" state
+	err = usecase.userTeamRepo.Save(userId, teamId, "INVITED")
+	if err != nil {
+		return err
+	}
+
+	// Send invitation email
+	//////////////////////////
+
+	return nil
+}
+
+func (usecase *teamUsecase) AcceptInvitation(teamId, userId string) error {
 	// Check existence of team and user
 	_, err := usecase.teamRepo.FindById(teamId)
 	if err != nil {
@@ -87,8 +131,8 @@ func (usecase *teamUsecase) AddMember(teamId, userId string) error {
 		return err
 	}
 
-	// Add user to team
-	err = usecase.userTeamRepo.Save(userId, teamId)
+	// Update state of user-team
+	err = usecase.userTeamRepo.UpdateState(userId, teamId)
 	if err != nil {
 		return err
 	}

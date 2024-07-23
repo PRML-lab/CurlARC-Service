@@ -22,6 +22,7 @@ erDiagram
     USER_TEAM {
         uint UserID FK
         uint TeamID FK
+        string State 
     }
 
     USER ||--o{ USER_TEAM: "belongs to"

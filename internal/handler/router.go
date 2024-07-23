@@ -18,7 +18,8 @@ func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler)
 	debug.POST("/teams", teamHandler.CreateTeam())
 	debug.GET("/teams", teamHandler.GetAllTeams())
 	debug.GET("/teams/:teamId", teamHandler.GetMembers())
-	debug.POST("/teams/:teamId/:userId", teamHandler.AddMember())
+	debug.POST("/teams/:teamId/:userId", teamHandler.InviteUser())
+	debug.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
 	debug.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
 
 	// 認証が必要なルートにミドルウェアを適用
@@ -36,7 +37,8 @@ func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler)
 	authGroup.PATCH("/teams/:teamId", teamHandler.UpdateTeam())
 	authGroup.DELETE("/teams/:teamId", teamHandler.DeleteTeam())
 
-	authGroup.POST("/teams/:teamId/:userId", teamHandler.AddMember())
+	authGroup.POST("/teams/:teamId/:userId", teamHandler.InviteUser())
+	authGroup.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
 	authGroup.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
 
 	e.GET("/health", func(c echo.Context) error {

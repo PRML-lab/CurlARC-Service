@@ -14,18 +14,9 @@ func NewUserTeamRepository(sqlHandler SqlHandler) repository.UserTeamRepository 
 	return &userTeamRepository
 }
 
-func (userTeamRepo *UserTeamRepository) Save(userId, teamId string) error {
-	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
+func (userTeamRepo *UserTeamRepository) Save(userId, teamId, state string) error {
+	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId, State: state}
 	result := userTeamRepo.SqlHandler.Conn.Create(userTeam)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func (userTeamRepo *UserTeamRepository) Delete(userId, teamId string) error {
-	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
-	result := userTeamRepo.SqlHandler.Conn.Delete(userTeam)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -63,4 +54,31 @@ func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]stri
 	}
 
 	return teamIds, nil
+}
+
+func (userTeamRepo *UserTeamRepository) UpdateState(userId, teamId string) error {
+	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
+	result := userTeamRepo.SqlHandler.Conn.Model(userTeam).Update("state", "MEMBER")
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (userTeamRepo *UserTeamRepository) Delete(userId, teamId string) error {
+	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
+	result := userTeamRepo.SqlHandler.Conn.Delete(userTeam)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (userTeamRepo *UserTeamRepository) IsMember(userId, teamId string) (bool, error) {
+	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
+	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND team_id = ? AND state = ?", userId, teamId, "MEMBER").First(userTeam)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return true, nil
 }

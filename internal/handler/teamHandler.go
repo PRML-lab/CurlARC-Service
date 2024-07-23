@@ -19,6 +19,8 @@ func NewTeamHandler(teamUsecase usecase.TeamUsecase) TeamHandler {
 
 func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// 認証済みユーザーのIDを取得
+		userId := c.Get("uid").(string)
 		var req request.CreateTeamRequest
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
@@ -30,7 +32,7 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 			})
 		}
 
-		err := h.teamUsecase.CreateTeam(req.Name)
+		err := h.teamUsecase.CreateTeam(req.Name, userId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -150,12 +152,12 @@ func (h *TeamHandler) DeleteTeam() echo.HandlerFunc {
 	}
 }
 
-func (h *TeamHandler) AddMember() echo.HandlerFunc {
+func (h *TeamHandler) InviteUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamID := c.Param("teamId")
 		userID := c.Param("userId")
 
-		err := h.teamUsecase.AddMember(teamID, userID)
+		err := h.teamUsecase.InviteUser(teamID, userID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -167,6 +169,29 @@ func (h *TeamHandler) AddMember() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusCreated, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
+	}
+}
+
+func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		teamID := c.Param("teamId")
+		userID := c.Param("userId")
+
+		err := h.teamUsecase.AcceptInvitation(teamID, userID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data:   nil,
 		})
