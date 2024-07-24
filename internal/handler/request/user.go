@@ -1,7 +1,5 @@
 package request
 
-import "github.com/lib/pq"
-
 type SignUpRequest struct {
 	IdToken string `json:"id_token"`
 	Name    string `json:"name"`
@@ -17,9 +15,8 @@ type GetUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Name    string         `json:"name"`
-	Email   string         `json:"email"`
-	TeamIds pq.StringArray `json:"team_ids"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type DeleteUserRequest struct {

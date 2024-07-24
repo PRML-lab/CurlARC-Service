@@ -32,7 +32,6 @@ func NewSqlHandler() *SqlHandler {
 		panic(err.Error)
 	}
 
-	// UUID 拡張を有効化
 	conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
 	// マイグレーション
