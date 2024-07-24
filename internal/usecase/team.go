@@ -15,7 +15,7 @@ type TeamUsecase interface {
 	DeleteTeam(id string) error
 
 	// User関連
-	InviteUser(teamId, userId string) error
+	InviteUser(teamId, userId, targetId string) error
 	AcceptInvitation(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
 	GetTeamsByUserId(userId string) ([]*model.Team, error)
@@ -89,7 +89,7 @@ func (usecase *teamUsecase) DeleteTeam(id string) error {
 	return nil
 }
 
-func (usecase *teamUsecase) InviteUser(teamId, userId string) error {
+func (usecase *teamUsecase) InviteUser(teamId, userId, targetId string) error {
 	// Check existence of team and user
 	_, err := usecase.teamRepo.FindById(teamId)
 	if err != nil {
@@ -99,6 +99,11 @@ func (usecase *teamUsecase) InviteUser(teamId, userId string) error {
 	if err != nil {
 		return err
 	}
+	_, err = usecase.userRepo.FindById(targetId)
+	if err != nil {
+		return err
+	}
+
 	// Check if the inviter is a member of the team
 	isMember, err := usecase.userTeamRepo.IsMember(userId, teamId)
 	if err != nil {
@@ -106,6 +111,15 @@ func (usecase *teamUsecase) InviteUser(teamId, userId string) error {
 	}
 	if !isMember {
 		return errors.New("inviter is not a member of the team")
+	}
+
+	// Check if the target user is already a member of the team
+	isMember, err = usecase.userTeamRepo.IsMember(targetId, teamId)
+	if err != nil {
+		return err
+	}
+	if isMember {
+		return errors.New("target user is already a member of the team")
 	}
 
 	// Add user to team with "INVITED" state

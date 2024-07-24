@@ -154,10 +154,11 @@ func (h *TeamHandler) DeleteTeam() echo.HandlerFunc {
 
 func (h *TeamHandler) InviteUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		teamID := c.Param("teamId")
-		userID := c.Param("userId")
+		teamId := c.Param("teamId")
+		userId := c.Get("uid").(string)
+		targetId := c.Param("targetId")
 
-		err := h.teamUsecase.InviteUser(teamID, userID)
+		err := h.teamUsecase.InviteUser(teamId, userId, targetId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
