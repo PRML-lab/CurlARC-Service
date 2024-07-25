@@ -15,7 +15,8 @@ func InjectRecordRepository() repository.RecordRepository {
 
 func InjectRecordUsecase() usecase.RecordUsecase {
 	recordRepo := InjectRecordRepository()
-	return usecase.NewRecordUsecase(recordRepo)
+	teamRepo := InjectTeamRepository()
+	return usecase.NewRecordUsecase(recordRepo, teamRepo)
 }
 
 func InjectRecordHandler() handler.RecordHandler {
