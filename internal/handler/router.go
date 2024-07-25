@@ -2,7 +2,6 @@ package handler
 
 import (
 	"CurlARC/internal/middleware"
-	"net/http"
 
 	"github.com/labstack/echo"
 )
@@ -36,7 +35,7 @@ func InitRouting(
 	authGroup.PATCH("/me", userHandler.UpdateUser())
 	authGroup.DELETE("/me", userHandler.DeleteUser())
 
-	//team
+	// team集約
 	authGroup.POST("/teams", teamHandler.CreateTeam())
 	authGroup.GET("/teams", teamHandler.GetAllTeams())
 
@@ -55,8 +54,4 @@ func InitRouting(
 	authGroup.DELETE("/record/:recordId", recordHandler.DeleteRecord())
 
 	authGroup.PATCH("/record/:recordId/:userId", recordHandler.SetVisibility())
-
-	e.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "healthy!")
-	})
 }
