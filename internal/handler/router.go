@@ -49,8 +49,12 @@ func InitRouting(
 	authGroup.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
 
 	// record集約
-	authGroup.POST("/record", recordHandler.CreateRecord())
+	authGroup.POST("/record/:teamId/:userId", recordHandler.CreateRecord())
 	authGroup.GET("/record/:teamId", recordHandler.GetRecordByTeamId())
+	authGroup.PATCH("/record/:recordId/:userId", recordHandler.UpdateRecord())
+	authGroup.DELETE("/record/:recordId", recordHandler.DeleteRecord())
+
+	authGroup.PATCH("/record/:recordId/:userId", recordHandler.SetVisibility())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "healthy!")
