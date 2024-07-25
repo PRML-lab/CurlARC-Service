@@ -11,26 +11,30 @@ import (
 
 type RecordUsecase interface {
 	CreateRecord(ctx context.Context, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
-	GetRecord(ctx context.Context, id string) (*model.Record, error)
+	GetRecordByTeamId(ctx context.Context, id string) (*model.Record, error)
 	UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
 	DeleteRecord(ctx context.Context, id string) error
 }
 
 type recordUsecase struct {
 	recordRepo repository.RecordRepository
+	teamRepo   repository.TeamRepository
 }
 
-func NewRecordUsecase(recordRepo repository.RecordRepository) RecordUsecase {
-	return &recordUsecase{recordRepo: recordRepo}
+func NewRecordUsecase(recordRepo repository.RecordRepository, teamRepo repository.TeamRepository) RecordUsecase {
+	return &recordUsecase{recordRepo: recordRepo, teamRepo: teamRepo}
 }
 
 func (u *recordUsecase) CreateRecord(ctx context.Context, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
-
+	// check if the team exists
+	if _, err := u.teamRepo.FindById(teamId); err != nil {
+		return nil, err
+	}
 	return u.recordRepo.Create(ctx, teamId, place, date, endsData)
 }
 
-func (u *recordUsecase) GetRecord(ctx context.Context, id string) (*model.Record, error) {
-	return u.recordRepo.GetById(ctx, id)
+func (u *recordUsecase) GetRecordByTeamId(ctx context.Context, teamId string) (*model.Record, error) {
+	return u.recordRepo.GetByTeamId(ctx, teamId)
 }
 
 func (u *recordUsecase) UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {

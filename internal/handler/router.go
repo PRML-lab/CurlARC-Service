@@ -50,6 +50,7 @@ func InitRouting(
 
 	// record集約
 	authGroup.POST("/record", recordHandler.CreateRecord())
+	authGroup.GET("/record/:teamId", recordHandler.GetRecordByTeamId())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "healthy!")

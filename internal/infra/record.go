@@ -34,9 +34,9 @@ func (r *RecordRepository) Create(ctx context.Context, teamId, place string, dat
 	return record, nil
 }
 
-func (r *RecordRepository) GetById(ctx context.Context, id string) (*model.Record, error) {
+func (r *RecordRepository) GetByTeamId(ctx context.Context, teamId string) (*model.Record, error) {
 	var record model.Record
-	if err := r.Conn.WithContext(ctx).First(&record, "id = ?", id).Error; err != nil {
+	if err := r.Conn.WithContext(ctx).First(&record, "team_id = ?", teamId).Error; err != nil {
 		return nil, err
 	}
 	return &record, nil
