@@ -16,25 +16,25 @@ type Record struct {
 }
 
 type DataPerEnd struct {
-	Id       string `json:"id"`
-	RecordId string `json:"record_id"`
-	Score    int    `json:"score"`
-	Shots    []Shot `json:"shots"`
+	Id       string
+	RecordId string
+	Score    int
+	Shots    []Shot
 }
 
 type Shot struct {
-	Id          string       `json:"id"`
-	EndId       string       `json:"end_id"`
-	Type        string       `json:"type"`
-	SuccessRate float64      `json:"success_rate"`
-	Shooter     string       `json:"shooter"`
-	Coordinates []Coordinate `json:"coordinates"`
+	Id          string
+	EndId       string
+	Type        string
+	SuccessRate float64
+	Shooter     string
+	Coordinates []Coordinate
 }
 
 type Coordinate struct {
-	Id          string  `json:"id"`
-	ShotId      string  `json:"shot_id"`
-	StoneNumber int     `json:"stone_number"`
-	R           float64 `json:"r"`
-	Theta       float64 `json:"theta"`
+	Id          string
+	ShotId      string
+	StoneNumber int
+	R           float64
+	Theta       float64
 }
