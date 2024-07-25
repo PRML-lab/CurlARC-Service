@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"time"
-
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -14,11 +12,11 @@ type Claims struct {
 }
 
 func GenerateJWT(uid string) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
+	// expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
-		UID: uid,
+		UID:            uid,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+			// ExpiresAt: expirationTime.Unix(),
 		},
 	}
 
