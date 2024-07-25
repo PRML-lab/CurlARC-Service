@@ -32,7 +32,7 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 		}
 
 		// ユースケースにリクエストを渡す
-		record, err := h.recordUsecase.CreateRecord(c.Request().Context(), req.TeamId, req.Place, req.Date, req.EndsData)
+		record, err := h.recordUsecase.CreateRecord(c.Request().Context(), req.UserId, req.TeamId, req.Place, req.Date, req.EndsData)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
