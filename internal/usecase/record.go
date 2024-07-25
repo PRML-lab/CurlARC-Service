@@ -12,7 +12,7 @@ import (
 type RecordUsecase interface {
 	CreateRecord(ctx context.Context, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
 	GetRecord(ctx context.Context, id string) (*model.Record, error)
-	UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData []model.DataPerEnd) error
+	UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
 	DeleteRecord(ctx context.Context, id string) error
 }
 
@@ -26,22 +26,14 @@ func NewRecordUsecase(recordRepo repository.RecordRepository) RecordUsecase {
 
 func (u *recordUsecase) CreateRecord(ctx context.Context, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
 
-	var dummy model.DataPerEnd
-	dummy.Id = "1"
-	dummy.RecordId = "2"
-	dummy.Score = 100
-	dummy.Shots = []model.Shot{}
-
-	var dummies []model.DataPerEnd
-
-	return u.recordRepo.Create(ctx, teamId, place, date, dummies)
+	return u.recordRepo.Create(ctx, teamId, place, date, endsData)
 }
 
 func (u *recordUsecase) GetRecord(ctx context.Context, id string) (*model.Record, error) {
 	return u.recordRepo.GetById(ctx, id)
 }
 
-func (u *recordUsecase) UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData []model.DataPerEnd) error {
+func (u *recordUsecase) UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
 	return u.recordRepo.Update(ctx, id, teamId, place, date, endsData)
 }
 

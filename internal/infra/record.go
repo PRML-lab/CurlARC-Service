@@ -4,8 +4,9 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"context"
-	"encoding/json"
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type RecordRepository struct {
@@ -17,17 +18,13 @@ func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 	return &recordRepository
 }
 
-func (r *RecordRepository) Create(ctx context.Context, teamId, place string, date time.Time, endsData []model.DataPerEnd) (*model.Record, error) {
-	endsDataJSON, err := json.Marshal(endsData)
-	if err != nil {
-		return nil, err
-	}
+func (r *RecordRepository) Create(ctx context.Context, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
 
 	record := &model.Record{
 		Place:    place,
 		Date:     date,
 		TeamId:   teamId,
-		EndsData: endsDataJSON,
+		EndsData: endsData,
 	}
 
 	if err := r.Conn.WithContext(ctx).Create(record).Error; err != nil {
@@ -45,23 +42,19 @@ func (r *RecordRepository) GetById(ctx context.Context, id string) (*model.Recor
 	return &record, nil
 }
 
-func (r *RecordRepository) Update(ctx context.Context, id, teamId, place string, date time.Time, endsData []model.DataPerEnd) error {
-	endsDataJSON, err := json.Marshal(endsData)
-	if err != nil {
-		return err
+func (r *RecordRepository) Update(ctx context.Context, id, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
+
+	updateRecord := &model.Record{
+		Place:    place,
+		Date:     date,
+		TeamId:   teamId,
+		EndsData: endsData,
 	}
 
-	updateData := map[string]interface{}{
-		"team_id":   teamId,
-		"place":     place,
-		"date":      date,
-		"ends_data": endsDataJSON,
+	if err := r.Conn.WithContext(ctx).Model(&model.Record{}).Where("id = ?", id).Updates(updateRecord).Error; err != nil {
+		return nil, err
 	}
-
-	if err := r.Conn.WithContext(ctx).Model(&model.Record{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
-		return err
-	}
-	return nil
+	return updateRecord, nil
 }
 
 func (r *RecordRepository) Delete(ctx context.Context, id string) error {
