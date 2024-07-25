@@ -9,9 +9,9 @@ import (
 type Record struct {
 	Id       string `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	TeamId   string
+	Team     Team   `gorm:"foreignKey:TeamId; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Place    string `gorm:"size:255"`
 	Date     time.Time
-	Team     Team           `gorm:"foreignKey:TeamId; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	EndsData datatypes.JSON `gorm:"type:json"`
 }
 
