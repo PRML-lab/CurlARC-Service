@@ -3,6 +3,7 @@ package handler
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/handler/request"
+	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
 	"encoding/json"
 	"net/http"
@@ -23,20 +24,40 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req request.CreateRecordRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
 		}
+
 		// Validate JSON format
 		var ends []model.DataPerEnd
 		if err := json.Unmarshal([]byte(req.EndsData), &ends); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid JSON format"})
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid JSON format",
+				},
+			})
 		}
 
 		// ユースケースにリクエストを渡す
 		record, err := h.recordUsecase.CreateRecord(c.Request().Context(), req.UserId, req.TeamId, req.Place, req.Date, req.EndsData)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
+		// 成功時のレスポンス形式も統一
 		return c.JSON(http.StatusCreated, record)
 	}
 }
@@ -49,9 +70,19 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 		// ユースケースにリクエストを渡す
 		record, err := h.recordUsecase.GetRecordByTeamId(c.Request().Context(), teamId)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.JSON(http.StatusOK, record)
+		// 成功時のレスポンス形式も統一
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   record,
+		})
 	}
 }
