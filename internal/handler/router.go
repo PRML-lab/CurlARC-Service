@@ -7,7 +7,12 @@ import (
 	"github.com/labstack/echo"
 )
 
-func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler) {
+func InitRouting(
+	e *echo.Echo,
+	userHandler UserHandler,
+	teamHandler TeamHandler,
+	recordHandler RecordHandler,
+) {
 
 	e.POST("/signup", userHandler.SignUp())
 	e.POST("/signin", userHandler.SignIn())
@@ -24,6 +29,8 @@ func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler)
 
 	// 認証が必要なルートにミドルウェアを適用
 	authGroup := e.Group("/auth")
+
+	// user集約
 	authGroup.Use(middleware.JWTMiddleware)
 	authGroup.GET("/me", userHandler.GetUser())
 	authGroup.PATCH("/me", userHandler.UpdateUser())
@@ -40,6 +47,10 @@ func InitRouting(e *echo.Echo, userHandler UserHandler, teamHandler TeamHandler)
 	authGroup.POST("/teams/:teamId/:userId", teamHandler.InviteUser())
 	authGroup.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
 	authGroup.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
+
+	// record集約
+	authGroup.POST("/record", recordHandler.CreateRecord())
+	authGroup.GET("/record/:teamId", recordHandler.GetRecordByTeamId())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "healthy!")

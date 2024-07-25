@@ -5,64 +5,50 @@ import (
 	"CurlARC/internal/domain/repository"
 	"context"
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type RecordUsecase interface {
-	// CRUD
-	CreateRecord(ctx context.Context, teamId string, place string, date time.Time) (*model.Record, error)
-	GetRecord(ctx context.Context, Id string) (*model.Record, error)
-	UpdateRecord(ctx context.Context, Id string, teamId string, place string, date time.Time) error
-	DeleteRecord(ctx context.Context, Id string) error
+	CreateRecord(ctx context.Context, userId, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
+	GetRecordByTeamId(ctx context.Context, id string) (*model.Record, error)
+	UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
+	DeleteRecord(ctx context.Context, id string) error
 }
 
 type recordUsecase struct {
-	recordRepo repository.RecordRepository
-	endRepo    repository.EndRepository
-	shotRepo   repository.ShotRepository
+	recordRepo   repository.RecordRepository
+	userTeamRepo repository.UserTeamRepository
+	teamRepo     repository.TeamRepository
 }
 
-func NewRecordUsecase(recordRepo repository.RecordRepository, endRepo repository.EndRepository, shotRepo repository.ShotRepository) RecordUsecase {
-	return &recordUsecase{
-		recordRepo: recordRepo,
-		endRepo:    endRepo,
-		shotRepo:   shotRepo,
-	}
+func NewRecordUsecase(recordRepo repository.RecordRepository, userTeamRepo repository.UserTeamRepository, teamRepo repository.TeamRepository) RecordUsecase {
+	return &recordUsecase{recordRepo: recordRepo, userTeamRepo: userTeamRepo, teamRepo: teamRepo}
 }
 
-func (r *recordUsecase) CreateRecord(ctx context.Context, teamId string, place string, date time.Time) (*model.Record, error) {
-	record := &model.Record{
-		TeamId: teamId,
-		Place:  place,
-		Date:   date,
-	}
-	if err := r.recordRepo.Create(ctx, record); err != nil {
+func (u *recordUsecase) CreateRecord(ctx context.Context, userId, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
+
+	// check if the user is a member of the team
+	if _, err := u.userTeamRepo.IsMember(userId, teamId); err != nil {
 		return nil, err
 	}
-	return record, nil
-}
 
-func (r *recordUsecase) GetRecord(ctx context.Context, recordId string) (*model.Record, error) {
-	record, err := r.recordRepo.GetById(ctx, recordId)
-	if err != nil {
+	// check if the team exists
+	if _, err := u.teamRepo.FindById(teamId); err != nil {
 		return nil, err
 	}
-	return record, nil
+
+	return u.recordRepo.Create(ctx, teamId, place, date, endsData)
 }
 
-func (r *recordUsecase) UpdateRecord(ctx context.Context, recordId string, teamId string, place string, date time.Time) error {
-	record, err := r.recordRepo.GetById(ctx, recordId)
-	if err != nil {
-		return err
-	}
-	record.TeamId = teamId
-	record.Place = place
-	record.Date = date
-	if err := r.recordRepo.Update(ctx, record); err != nil {
-		return err
-	}
-	return nil
+func (u *recordUsecase) GetRecordByTeamId(ctx context.Context, teamId string) (*model.Record, error) {
+	return u.recordRepo.GetByTeamId(ctx, teamId)
 }
 
-func (r *recordUsecase) DeleteRecord(ctx context.Context, recordId string) error {
-	return r.recordRepo.Delete(ctx, recordId)
+func (u *recordUsecase) UpdateRecord(ctx context.Context, id, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
+	return u.recordRepo.Update(ctx, id, teamId, place, date, endsData)
+}
+
+func (u *recordUsecase) DeleteRecord(ctx context.Context, id string) error {
+	return u.recordRepo.Delete(ctx, id)
 }
