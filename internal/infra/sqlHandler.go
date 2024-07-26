@@ -23,8 +23,6 @@ func NewSqlHandler() *SqlHandler {
 	// port := os.Getenv("DATABASE_PORT")
 	// tz := os.Getenv("DATABASE_TZ")
 
-	// dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s TimeZone=%s",
-	// 	host, user, password, dbname, port, tz)
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
 		host, user, password, dbname)
 
@@ -34,8 +32,15 @@ func NewSqlHandler() *SqlHandler {
 		panic(err.Error)
 	}
 
+	conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
+
 	// マイグレーション
-	err = conn.AutoMigrate(&model.User{}, &model.Team{}, &model.Record{})
+	err = conn.AutoMigrate(
+		&model.User{},
+		&model.Team{},
+		&model.UserTeam{},
+		&model.Record{},
+	)
 	if err != nil {
 		panic(err.Error)
 	}

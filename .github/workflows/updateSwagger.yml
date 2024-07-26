@@ -1,0 +1,39 @@
+name: Update Swagger Docs
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  update-swagger:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.22.2'
+
+    - name: Install swag
+      run: go install github.com/swaggo/swag/cmd/swag@latest
+
+    - name: Generate Swagger docs
+      run: swag init --parseDependency --parseInternal
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "update: Swagger docs"
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

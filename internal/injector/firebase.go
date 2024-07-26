@@ -1,10 +1,6 @@
 package injector
 
 import (
-	"CurlARC/internal/domain/repository"
-	"CurlARC/internal/handler"
-	"CurlARC/internal/infra"
-	"CurlARC/internal/usecase"
 	"context"
 	"encoding/json"
 	"log"
@@ -14,18 +10,6 @@ import (
 	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/option"
 )
-
-func InjectDB() infra.SqlHandler {
-	sqlhandler := infra.NewSqlHandler()
-	return *sqlhandler
-}
-
-// UserRepository (interface) に実装である SqlHandler を渡し生成する
-
-func InjectUserRepository() repository.UserRepository {
-	sqlHandler := InjectDB()
-	return infra.NewUserRepository(sqlHandler)
-}
 
 func InjectFirebaseAuthClient() *auth.Client {
 	// opt := option.WithCredentialsFile("service_account_file.json")
@@ -59,15 +43,4 @@ func InjectFirebaseAuthClient() *auth.Client {
 	}
 
 	return authClient
-}
-
-func InjectUserUsecase() usecase.UserUsecase {
-	userRepo := InjectUserRepository()
-	authClient := InjectFirebaseAuthClient()
-	return usecase.NewUserUsecase(userRepo, authClient)
-}
-
-func InjectUserHandler() handler.UserHandler {
-	userUsecase := InjectUserUsecase()
-	return handler.NewUserHandler(userUsecase)
 }

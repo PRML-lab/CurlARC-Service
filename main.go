@@ -1,3 +1,5 @@
+// @title CurlARC API
+// @version 1.0
 package main
 
 import (
@@ -5,11 +7,13 @@ import (
 	"CurlARC/internal/injector"
 	"CurlARC/internal/utils"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+	// environment variables
+	utils.LoadEnv()
 
 	e := echo.New()
 
@@ -26,13 +30,12 @@ func main() {
 			echo.HeaderAuthorization},
 	}))
 
-	// environment variables
-	utils.LoadEnv()
-
 	// Handler
 	userHandler := injector.InjectUserHandler()
+	recordHandler := injector.InjectRecordHandler()
+	teamHandler := injector.InjectTeamHandler()
 
 	// Routing
-	handler.InitRouting(e, userHandler)
+	handler.InitRouting(e, userHandler, teamHandler, recordHandler)
 	e.Logger.Fatal(e.Start(":8080"))
 }

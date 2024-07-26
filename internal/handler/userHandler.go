@@ -1,130 +1,298 @@
 package handler
 
 import (
-	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"CurlARC/internal/handler/request"
+	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
 	"CurlARC/internal/utils"
 	"net/http"
 
-	"github.com/labstack/echo"
-	"github.com/lib/pq"
+	"github.com/labstack/echo/v4"
 )
 
+// UserHandler handles requests related to users.
 type UserHandler struct {
 	userUsecase usecase.UserUsecase
 }
 
+// NewUserHandler creates a new UserHandler instance.
 func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
 	return UserHandler{userUsecase: userUsecase}
 }
 
-// 新規ユーザー登録
+// SignUp handles user registration.
+// @Summary Register a new user
+// @Description Registers a new user with the provided ID token, name, and email
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body request.SignUpRequest true "User registration information"
+// @Success 201 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 409 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /signup [post]
 func (h *UserHandler) SignUp() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var req struct {
-			IdToken string         `json:"id_token"`
-			Name    string         `json:"name"`
-			Email   string         `json:"email"`
-			TeamIds pq.StringArray `json:"team_ids"`
-		}
-
-		// リクエストのバインド
+		var req request.SignUpRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
 		}
 
-		// ユースケースにリクエストを渡す
-		err := h.userUsecase.SignUp(c.Request().Context(), req.IdToken, req.Name, req.Email, req.TeamIds)
+		err := h.userUsecase.SignUp(c.Request().Context(), req.IdToken, req.Name, req.Email)
 		if err != nil {
 			if err == repository.ErrUnauthorized {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid id token"})
+				return c.JSON(http.StatusUnauthorized, response.ErrorResponse{
+					Status: "error",
+					Error: response.ErrorDetail{
+						Code:    http.StatusUnauthorized,
+						Message: "invalid id token",
+					},
+				})
 			} else if err == repository.ErrEmailExists {
-				return c.JSON(http.StatusConflict, map[string]string{"error": "email already exists"})
+				return c.JSON(http.StatusConflict, response.ErrorResponse{
+					Status: "error",
+					Error: response.ErrorDetail{
+						Code:    http.StatusConflict,
+						Message: "email already exists",
+					},
+				})
 			}
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.JSON(http.StatusOK, map[string]string{"message": "success"})
+		return c.JSON(http.StatusCreated, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }
 
-// ログイン
+// SignIn handles user login.
+// @Summary Log in a user
+// @Description Logs in a user with the provided ID token and returns a JWT
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body request.SignInRequest true "User login information"
+// @Success 200 {object} response.SuccessResponse{data=response.SignInResponse}
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /signin [post]
 func (h *UserHandler) SignIn() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var req struct {
-			IdToken string `json:"id_token"`
-		}
-
+		var req request.SignInRequest
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
 		}
 
-		// リクエストをユースケースに渡す
 		user, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
 		if err != nil {
 			if err == repository.ErrUserNotFound {
-				return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
+				return c.JSON(http.StatusNotFound, response.ErrorResponse{
+					Status: "error",
+					Error: response.ErrorDetail{
+						Code:    http.StatusNotFound,
+						Message: "user not found",
+					},
+				})
 			}
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		// JWT 発行
 		jwt, err := utils.GenerateJWT(user.Id)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
 
-		return c.JSON(http.StatusOK, map[string]string{"jwt": jwt, "user_id": user.Id, "name": user.Name, "email": user.Email})
+		res := response.SignInResponse{
+			Jwt:   jwt,
+			Id:    user.Id,
+			Name:  user.Name,
+			Email: user.Email,
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   res,
+		})
 	}
 }
 
-// ユーザー一覧の取得
-func (h *UserHandler) GetAllUser() echo.HandlerFunc {
+// GetAllUsers retrieves all users.
+// @Summary Get all users
+// @Description Retrieves a list of all registered users
+// @Tags Users
+// @Produce json
+// @Success 200 {object} response.SuccessResponse{data=[]model.User}
+// @Failure 500 {object} response.ErrorResponse
+// @Router /users [get]
+func (h *UserHandler) GetAllUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		users, err := h.userUsecase.GetAllUsers(c.Request().Context())
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
-		return c.JSON(http.StatusOK, users)
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   users,
+		})
 	}
 }
 
-// ユーザー情報の取得
+// GetUser retrieves information about a specific user.
+// @Summary Get user information
+// @Description Retrieves information about the currently authenticated user
+// @Tags Users
+// @Produce json
+// @Success 200 {object} response.SuccessResponse{data=response.GetUserResponse}
+// @Failure 500 {object} response.ErrorResponse
+// @Router /users/me [get]
 func (h *UserHandler) GetUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID := c.Get("userID").(string)
-		user, err := h.userUsecase.GetUser(c.Request().Context(), userID)
+		id := c.Get("uid").(string)
+
+		user, err := h.userUsecase.GetUser(c.Request().Context(), id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
-		return c.JSON(http.StatusOK, user)
+
+		res := response.GetUserResponse{
+			Id:    user.Id,
+			Name:  user.Name,
+			Email: user.Email,
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   res,
+		})
 	}
 }
 
-// ユーザー情報の更新
+// UpdateUser updates user information.
+// @Summary Update user information
+// @Description Updates the name and email of the currently authenticated user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body request.UpdateUserRequest true "Updated user information"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /users [PATCH]
 func (h *UserHandler) UpdateUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userId := c.Get("userID").(string)
-		var user model.User
-		if err := c.Bind(&user); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
+		var req request.UpdateUserRequest
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
 		}
-		user.Id = userId
-		if err := h.userUsecase.UpdateUser(c.Request().Context(), &user); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		id := c.Get("uid").(string)
+
+		if err := h.userUsecase.UpdateUser(c.Request().Context(), id, req.Name, req.Email); err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
 		}
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }
 
-// ユーザーの削除
+// DeleteUser deletes a specific user.
+// @Summary Delete a user
+// @Description Deletes a user with the provided ID
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body request.DeleteUserRequest true "User ID to delete"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /users [delete]
 func (h *UserHandler) DeleteUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID := c.Get("userID").(string)
-		if err := h.userUsecase.DeleteUser(c.Request().Context(), userID); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		var req request.DeleteUserRequest
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
 		}
-		return c.NoContent(http.StatusOK)
+
+		if err := h.userUsecase.DeleteUser(c.Request().Context(), req.Id); err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   nil,
+		})
 	}
 }

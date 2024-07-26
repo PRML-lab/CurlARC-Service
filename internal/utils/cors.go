@@ -1,13 +1,15 @@
 package utils
 
-import "os"
+import (
+	"os"
+)
 
 func GetAllowOrigins() []string {
 	env := os.Getenv("ENV")
 	switch env {
 	case "production":
-		return []string{os.Getenv("ALLOW_ORIGINS_PROD")}
+		return []string{os.Getenv("ALLOW_ORIGIN_PROD")}
 	default:
-		return []string{os.Getenv("ALLOW_ORIGINS_DEV")}
+		return []string{os.Getenv("ALLOW_ORIGIN_DEV")}
 	}
 }
