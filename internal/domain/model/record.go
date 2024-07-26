@@ -13,6 +13,7 @@ type Record struct {
 	Place    string `gorm:"size:255"`
 	Date     time.Time
 	EndsData datatypes.JSON `gorm:"type:json"`
+	IsPublic bool           `gorm:"default:false"`
 }
 
 type DataPerEnd struct {

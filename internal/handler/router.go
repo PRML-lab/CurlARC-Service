@@ -2,9 +2,11 @@ package handler
 
 import (
 	"CurlARC/internal/middleware"
-	"net/http"
 
-	"github.com/labstack/echo"
+	_ "CurlARC/docs"
+
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func InitRouting(
@@ -14,8 +16,39 @@ func InitRouting(
 	recordHandler RecordHandler,
 ) {
 
+	// 認証が不要なエンドポイント
 	e.POST("/signup", userHandler.SignUp())
 	e.POST("/signin", userHandler.SignIn())
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	// 認証が必要なルートにミドルウェアを適用
+	authGroup := e.Group("/auth")
+	authGroup.Use(middleware.JWTMiddleware)
+
+	// ユーザー関連のエンドポイント
+	userGroup := authGroup.Group("/users")
+	userGroup.GET("/me", userHandler.GetUser())
+	userGroup.PATCH("/me", userHandler.UpdateUser())
+	userGroup.DELETE("/me", userHandler.DeleteUser())
+
+	// チーム関連のエンドポイント
+	teamGroup := authGroup.Group("/teams")
+	teamGroup.POST("/", teamHandler.CreateTeam())
+	teamGroup.GET("/", teamHandler.GetAllTeams())
+	teamGroup.GET("/:teamId", teamHandler.GetMembers())
+	teamGroup.PATCH("/:teamId", teamHandler.UpdateTeam())
+	teamGroup.DELETE("/:teamId", teamHandler.DeleteTeam())
+	teamGroup.POST("/:teamId/invite/:userId", teamHandler.InviteUser())
+	teamGroup.POST("/:teamId/accept/:userId", teamHandler.AcceptInvitation())
+	teamGroup.DELETE("/:teamId/remove/:userId", teamHandler.RemoveMember())
+
+	// レコード関連のエンドポイント
+	recordGroup := authGroup.Group("/records")
+	recordGroup.POST("/:teamId/:userId", recordHandler.CreateRecord())
+	recordGroup.GET("/:teamId", recordHandler.GetRecordByTeamId())
+	recordGroup.PATCH("/:recordId/:userId", recordHandler.UpdateRecord())
+	recordGroup.DELETE("/:recordId", recordHandler.DeleteRecord())
+	recordGroup.PATCH("/:recordId/userId/visibility", recordHandler.SetVisibility())
 
 	// デバッグ用
 	debug := e.Group("/debug")
@@ -26,33 +59,4 @@ func InitRouting(
 	debug.POST("/teams/:teamId/:targetId", teamHandler.InviteUser())
 	debug.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
 	debug.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
-
-	// 認証が必要なルートにミドルウェアを適用
-	authGroup := e.Group("/auth")
-
-	// user集約
-	authGroup.Use(middleware.JWTMiddleware)
-	authGroup.GET("/me", userHandler.GetUser())
-	authGroup.PATCH("/me", userHandler.UpdateUser())
-	authGroup.DELETE("/me", userHandler.DeleteUser())
-
-	//team
-	authGroup.POST("/teams", teamHandler.CreateTeam())
-	authGroup.GET("/teams", teamHandler.GetAllTeams())
-
-	authGroup.GET("/teams/:teamId", teamHandler.GetMembers())
-	authGroup.PATCH("/teams/:teamId", teamHandler.UpdateTeam())
-	authGroup.DELETE("/teams/:teamId", teamHandler.DeleteTeam())
-
-	authGroup.POST("/teams/:teamId/:userId", teamHandler.InviteUser())
-	authGroup.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
-	authGroup.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
-
-	// record集約
-	authGroup.POST("/record", recordHandler.CreateRecord())
-	authGroup.GET("/record/:teamId", recordHandler.GetRecordByTeamId())
-
-	e.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "healthy!")
-	})
 }

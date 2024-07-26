@@ -1,0 +1,753 @@
+definitions:
+  model.Record:
+    properties:
+      date:
+        type: string
+      endsData:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      isPublic:
+        type: boolean
+      place:
+        type: string
+      team:
+        $ref: '#/definitions/model.Team'
+      teamId:
+        type: string
+    type: object
+  model.Team:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/model.User'
+        type: array
+    type: object
+  model.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      teams:
+        items:
+          $ref: '#/definitions/model.Team'
+        type: array
+    type: object
+  request.CreateRecordRequest:
+    properties:
+      date:
+        type: string
+      ends_data:
+        items:
+          type: integer
+        type: array
+      place:
+        type: string
+    type: object
+  request.CreateTeamRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  request.DeleteUserRequest:
+    properties:
+      id:
+        type: string
+    type: object
+  request.SetVisibilityRequest:
+    properties:
+      is_public:
+        type: boolean
+    type: object
+  request.SignInRequest:
+    properties:
+      id_token:
+        type: string
+    type: object
+  request.SignUpRequest:
+    properties:
+      email:
+        type: string
+      id_token:
+        type: string
+      name:
+        type: string
+    type: object
+  request.UpdateRecordRequest:
+    properties:
+      date:
+        type: string
+      ends_data:
+        items:
+          type: integer
+        type: array
+      is_public:
+        type: boolean
+      place:
+        type: string
+      user_id:
+        type: string
+    type: object
+  request.UpdateTeamRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  request.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  response.ErrorDetail:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/response.ErrorDetail'
+      status:
+        type: string
+    type: object
+  response.GetUserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  response.SignInResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      jwt:
+        type: string
+      name:
+        type: string
+    type: object
+  response.SuccessResponse:
+    properties:
+      data: {}
+      status:
+        type: string
+    type: object
+  response.Team:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: CurlARC API
+  version: "1.0"
+paths:
+  /record/{recordId}:
+    delete:
+      description: Delete a record by its ID
+      parameters:
+      - description: Record ID
+        in: path
+        name: recordId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete a record
+      tags:
+      - records
+  /record/{recordId}/{userId}:
+    patch:
+      consumes:
+      - application/json
+      description: Update a record by its ID and user ID
+      parameters:
+      - description: Record ID
+        in: path
+        name: recordId
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Updated Record Data
+        in: body
+        name: record
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateRecordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Record'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update a record
+      tags:
+      - records
+  /record/{recordId}/{userId}/visibility:
+    patch:
+      consumes:
+      - application/json
+      description: Set the visibility of a record by its ID and user ID
+      parameters:
+      - description: Record ID
+        in: path
+        name: recordId
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Visibility Data
+        in: body
+        name: visibility
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetVisibilityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Record'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Set record visibility
+      tags:
+      - records
+  /record/{teamId}:
+    get:
+      description: Get all records for a specific team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Record'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get records by team ID
+      tags:
+      - records
+  /record/{teamId}/{userId}:
+    post:
+      consumes:
+      - application/json
+      description: Create a new record for a team by a user
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Record Data
+        in: body
+        name: record
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateRecordRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Record'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new record
+      tags:
+      - records
+  /signin:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user with the provided ID token and returns a JWT
+      parameters:
+      - description: User login information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.SignInResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Log in a user
+      tags:
+      - Users
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user with the provided ID token, name, and email
+      parameters:
+      - description: User registration information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Users
+  /teams:
+    get:
+      description: Retrieves a list of all teams
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.Team'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all teams
+      tags:
+      - Teams
+    post:
+      consumes:
+      - application/json
+      description: Creates a new team with the specified name
+      parameters:
+      - description: Team information
+        in: body
+        name: team
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTeamRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a new team
+      tags:
+      - Teams
+  /teams/{teamId}:
+    delete:
+      description: Deletes a team by its ID
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete a team
+      tags:
+      - Teams
+    patch:
+      consumes:
+      - application/json
+      description: Updates the name of an existing team
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated team information
+        in: body
+        name: team
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateTeamRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update a team
+      tags:
+      - Teams
+  /teams/{teamId}/accept/{userId}:
+    post:
+      description: Accepts an invitation to join a specific team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Accept a team invitation
+      tags:
+      - Teams
+  /teams/{teamId}/invite/{targetId}:
+    post:
+      description: Invites a user to a specific team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      - description: Target User ID
+        in: path
+        name: targetId
+        required: true
+        type: string
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Invite a user to a team
+      tags:
+      - Teams
+  /teams/{teamId}/members:
+    get:
+      description: Retrieves a list of all members of a specific team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.User'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all members of a team
+      tags:
+      - Teams
+  /teams/{teamId}/remove/{userId}:
+    post:
+      description: Removes a member from a specific team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Remove a member from a team
+      tags:
+      - Teams
+  /users:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a user with the provided ID
+      parameters:
+      - description: User ID to delete
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete a user
+      tags:
+      - Users
+    get:
+      description: Retrieves a list of all registered users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.User'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all users
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Updates the name and email of the currently authenticated user
+      parameters:
+      - description: Updated user information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update user information
+      tags:
+      - Users
+  /users/{userId}/teams:
+    get:
+      description: Retrieves a list of all teams associated with a specific user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.Team'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all teams for a user
+      tags:
+      - Teams
+  /users/me:
+    get:
+      description: Retrieves information about the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetUserResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get user information
+      tags:
+      - Users
+swagger: "2.0"
