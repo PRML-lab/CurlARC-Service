@@ -19,7 +19,19 @@ func NewRecordHandler(recordHandler usecase.RecordUsecase) RecordHandler {
 	return RecordHandler{recordUsecase: recordHandler}
 }
 
-// レコード作成
+// CreateRecord godoc
+// @Summary Create a new record
+// @Description Create a new record for a team by a user
+// @Tags records
+// @Accept  json
+// @Produce  json
+// @Param teamId path string true "Team ID"
+// @Param userId path string true "User ID"
+// @Param record body request.CreateRecordRequest true "Record Data"
+// @Success 201 {object} model.Record
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /record/{teamId}/{userId} [post]
 func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -65,7 +77,15 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 	}
 }
 
-// レコード取得
+// GetRecordByTeamId godoc
+// @Summary Get records by team ID
+// @Description Get all records for a specific team
+// @Tags records
+// @Produce  json
+// @Param teamId path string true "Team ID"
+// @Success 200 {object} []model.Record
+// @Failure 500 {object} response.ErrorResponse
+// @Router /record/{teamId} [get]
 func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -90,7 +110,19 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 	}
 }
 
-// レコード更新
+// UpdateRecord godoc
+// @Summary Update a record
+// @Description Update a record by its ID and user ID
+// @Tags records
+// @Accept  json
+// @Produce  json
+// @Param recordId path string true "Record ID"
+// @Param userId path string true "User ID"
+// @Param record body request.UpdateRecordRequest true "Updated Record Data"
+// @Success 200 {object} model.Record
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /record/{recordId}/{userId} [patch]
 func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")
@@ -139,7 +171,15 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 	}
 }
 
-// レコード削除
+// DeleteRecord godoc
+// @Summary Delete a record
+// @Description Delete a record by its ID
+// @Tags records
+// @Produce  json
+// @Param recordId path string true "Record ID"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /record/{recordId} [delete]
 func (h *RecordHandler) DeleteRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")
@@ -164,7 +204,19 @@ func (h *RecordHandler) DeleteRecord() echo.HandlerFunc {
 	}
 }
 
-// 公開判定を変更
+// SetVisibility godoc
+// @Summary Set record visibility
+// @Description Set the visibility of a record by its ID and user ID
+// @Tags records
+// @Accept  json
+// @Produce  json
+// @Param recordId path string true "Record ID"
+// @Param userId path string true "User ID"
+// @Param visibility body request.SetVisibilityRequest true "Visibility Data"
+// @Success 200 {object} model.Record
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /record/{recordId}/{userId}/visibility [patch]
 func (h *RecordHandler) SetVisibility() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")
