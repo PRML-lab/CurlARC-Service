@@ -6,7 +6,7 @@ import (
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/utils"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

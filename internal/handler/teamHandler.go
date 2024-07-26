@@ -6,7 +6,7 @@ import (
 	"CurlARC/internal/usecase"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // TeamHandler handles requests related to teams.

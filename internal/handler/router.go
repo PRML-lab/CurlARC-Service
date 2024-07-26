@@ -3,7 +3,10 @@ package handler
 import (
 	"CurlARC/internal/middleware"
 
-	"github.com/labstack/echo"
+	_ "CurlARC/docs"
+
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func InitRouting(
@@ -16,6 +19,7 @@ func InitRouting(
 	// 認証が不要なエンドポイント
 	e.POST("/signup", userHandler.SignUp())
 	e.POST("/signin", userHandler.SignIn())
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// 認証が必要なルートにミドルウェアを適用
 	authGroup := e.Group("/auth")
