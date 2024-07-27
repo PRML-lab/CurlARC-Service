@@ -15,6 +15,10 @@ func InitRouting(
 	teamHandler TeamHandler,
 	recordHandler RecordHandler,
 ) {
+	// health check
+	e.GET("/health", func(c echo.Context) error {
+		return c.String(200, "ok")
+	})
 
 	// 認証が不要なエンドポイント
 	e.POST("/signup", userHandler.SignUp())
