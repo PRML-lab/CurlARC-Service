@@ -7,11 +7,6 @@ import (
 	"CurlARC/internal/usecase"
 )
 
-func InjectDB() infra.SqlHandler {
-	sqlhandler := infra.NewSqlHandler()
-	return *sqlhandler
-}
-
 // UserRepository (interface) に実装である SqlHandler を渡し生成する
 
 func InjectUserRepository() repository.UserRepository {

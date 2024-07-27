@@ -3,7 +3,6 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
-	"fmt"
 )
 
 type UserRepository struct {
@@ -29,7 +28,6 @@ func (userRepo *UserRepository) FindAll() ([]*model.User, error) {
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	fmt.Print(result, users)
 	return users, nil
 }
 
