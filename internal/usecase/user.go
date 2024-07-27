@@ -5,7 +5,6 @@ import (
 	"CurlARC/internal/domain/repository"
 	"context"
 	"errors"
-	"fmt"
 
 	"firebase.google.com/go/v4/auth"
 	"gorm.io/gorm"
@@ -39,7 +38,6 @@ func (usecase *userUsecase) SignUp(ctx context.Context, idToken, name, email str
 	// idTokenを検証
 	token, err := usecase.authClient.VerifyIDToken(ctx, idToken)
 	if err != nil {
-		fmt.Print(err)
 		return repository.ErrUnauthorized
 	}
 

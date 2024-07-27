@@ -2,6 +2,7 @@ package handler
 
 import (
 	"CurlARC/internal/middleware"
+	"net/http"
 
 	_ "CurlARC/docs"
 
@@ -17,7 +18,7 @@ func InitRouting(
 ) {
 	// health check
 	e.GET("/health", func(c echo.Context) error {
-		return c.String(200, "ok")
+		return c.String(http.StatusOK, "ok")
 	})
 
 	// 認証が不要なエンドポイント
