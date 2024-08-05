@@ -31,8 +31,8 @@ func main() {
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
-			echo.HeaderAccept,
-			echo.HeaderAuthorization},
+			echo.HeaderAccept},
+		AllowCredentials: true,
 	}))
 
 	// Handler

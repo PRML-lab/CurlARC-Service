@@ -11,8 +11,8 @@ import (
 
 func JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		authHeader := c.Request().Header.Get("Authorization")
-		if authHeader == "" {
+		cookie, err := c.Cookie("jwt")
+		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResponse{
 				Status: "error",
 				Error: response.ErrorDetail{
@@ -22,7 +22,7 @@ func JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
-		tokenStr := authHeader[len("Bearer "):]
+		tokenStr := cookie.Value
 		claims, err := utils.ParseJWT(tokenStr)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResponse{
