@@ -79,7 +79,7 @@ func (usecase *userUsecase) AuthUser(ctx context.Context, id_token string) ([]*h
 	cookieJWT := &http.Cookie{
 		Name:     "jwt",
 		Value:    jwt,
-		HttpOnly: true,
+		HttpOnly: false,
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
 	}
