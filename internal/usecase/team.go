@@ -10,7 +10,6 @@ type TeamUsecase interface {
 	// CRUD
 	CreateTeam(name, userId string) error
 	GetAllTeams() ([]*model.Team, error)
-	GetTeam(id string) (*model.Team, error)
 	UpdateTeam(id, name string) error
 	DeleteTeam(id string) error
 

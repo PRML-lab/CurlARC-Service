@@ -63,6 +63,36 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 	}
 }
 
+// GetTeamsByUserId retrieves all teams for a specific user.
+// @Summary Get all teams for a user
+// @Description Retrieves a list of all teams associated with a specific user
+// @Tags Teams
+// @Produce json
+// @Success 200 {object} response.SuccessResponse{data=[]response.Team}
+// @Failure 500 {object} response.ErrorResponse
+// @Router /auth/teams/{userId} [get]
+func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userId := c.Param("userId")
+
+		teams, err := h.teamUsecase.GetTeamsByUserId(userId)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data:   teams,
+		})
+	}
+}
+
 // GetAllTeams retrieves all teams.
 // @Summary Get all teams
 // @Description Retrieves a list of all teams
@@ -296,36 +326,6 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data:   users,
-		})
-	}
-}
-
-// GetTeamsByUserId retrieves all teams for a specific user.
-// @Summary Get all teams for a user
-// @Description Retrieves a list of all teams associated with a specific user
-// @Tags Teams
-// @Produce json
-// @Success 200 {object} response.SuccessResponse{data=[]response.Team}
-// @Failure 500 {object} response.ErrorResponse
-// @Router /users/{userId}/teams [get]
-func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		userID := c.Get("uid").(string)
-
-		teams, err := h.teamUsecase.GetTeamsByUserId(userID)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
-				Status: "error",
-				Error: response.ErrorDetail{
-					Code:    http.StatusInternalServerError,
-					Message: err.Error(),
-				},
-			})
-		}
-
-		return c.JSON(http.StatusOK, response.SuccessResponse{
-			Status: "success",
-			Data:   teams,
 		})
 	}
 }
