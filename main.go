@@ -7,6 +7,8 @@ import (
 	"CurlARC/internal/injector"
 	"CurlARC/internal/utils"
 
+	myMiddleware "CurlARC/internal/middleware"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -24,14 +26,12 @@ func main() {
 			return c.Path() == "/health"
 		},
 	}))
+	e.Use(myMiddleware.LogBody)
 
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: utils.GetAllowOrigins(), // 許可するオリジンのリスト
-		AllowHeaders: []string{
-			echo.HeaderOrigin,
-			echo.HeaderContentType,
-			echo.HeaderAccept},
+		AllowOrigins:     utils.GetAllowOrigins(), // 許可するオリジンのリスト
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: true,
 	}))
 
