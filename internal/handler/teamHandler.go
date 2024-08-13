@@ -4,6 +4,7 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -73,7 +74,8 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 // @Router /auth/teams/{userId} [get]
 func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userId := c.Param("userId")
+		userId := c.Get("uid").(string)
+		fmt.Print(userId)
 
 		teams, err := h.teamUsecase.GetTeamsByUserId(userId)
 		if err != nil {

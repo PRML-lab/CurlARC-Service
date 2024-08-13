@@ -5,6 +5,7 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -106,7 +107,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			})
 		}
 
-		cookies, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
+		cookie, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
 		if err != nil {
 			if err == repository.ErrUserNotFound {
 				return c.JSON(http.StatusNotFound, response.ErrorResponse{
@@ -127,8 +128,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 		}
 
 		// Set the JWT token as a cookie
-		c.SetCookie(cookies[0]) // jwt
-		c.SetCookie(cookies[1]) // uuid
+		c.SetCookie(cookie) // jwt
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
@@ -176,6 +176,7 @@ func (h *UserHandler) GetAllUsers() echo.HandlerFunc {
 func (h *UserHandler) GetUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Get("uid").(string)
+		fmt.Print(id)
 
 		user, err := h.userUsecase.GetUser(c.Request().Context(), id)
 		if err != nil {
