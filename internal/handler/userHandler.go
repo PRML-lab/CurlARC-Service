@@ -106,7 +106,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			})
 		}
 
-		cookie, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
+		user, cookie, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
 		if err != nil {
 			if err == repository.ErrUserNotFound {
 				return c.JSON(http.StatusNotFound, response.ErrorResponse{
@@ -131,7 +131,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   nil,
+			Data:  user,
 		})
 	}
 }

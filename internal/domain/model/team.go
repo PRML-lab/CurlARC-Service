@@ -7,7 +7,7 @@ type Team struct {
 }
 
 type UserTeam struct {
-	UserId string `gorm:"primaryKey"`
-	TeamId string `gorm:"primaryKey"`
+	UserId string `gorm:"primaryKey;constraint:OnDelete:CASCADE;"`
+	TeamId string `gorm:"primaryKey;constraint:OnDelete:CASCADE;"`
 	State  string `gorm:"size:255"` // "INVITED" or "MEMBER"
 }
