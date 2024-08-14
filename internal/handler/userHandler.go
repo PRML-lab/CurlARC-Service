@@ -5,7 +5,6 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -176,7 +175,6 @@ func (h *UserHandler) GetAllUsers() echo.HandlerFunc {
 func (h *UserHandler) GetUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Get("uid").(string)
-		fmt.Print(id)
 
 		user, err := h.userUsecase.GetUser(c.Request().Context(), id)
 		if err != nil {

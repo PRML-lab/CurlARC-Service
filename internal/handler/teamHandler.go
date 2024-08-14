@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"CurlARC/internal/domain/model"
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -57,7 +57,7 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 			})
 		}
 
-		return c.JSON(http.StatusCreated, response.SuccessResponse{
+		return c.JSON(http.StatusNoContent, response.SuccessResponse{
 			Status: "success",
 			Data:   nil,
 		})
@@ -75,7 +75,6 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userId := c.Get("uid").(string)
-		fmt.Print(userId)
 
 		teams, err := h.teamUsecase.GetTeamsByUserId(userId)
 		if err != nil {
@@ -90,7 +89,9 @@ func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   teams,
+			Data: struct {Teams []*model.Team `json:"teams"`}{
+				Teams: teams,
+			} ,
 		})
 	}
 }
@@ -327,7 +328,9 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   users,
+			Data:  struct {Members []*model.User `json:"members"`}{
+				Members: users,
+			},
 		})
 	}
 }
