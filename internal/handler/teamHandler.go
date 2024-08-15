@@ -5,7 +5,6 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -262,8 +261,6 @@ func (h *TeamHandler) InviteUsers() echo.HandlerFunc {
 				},
 			})
 		}
-
-		fmt.Print("req.TargetUserEmails: ", req.TargetUserEmails)
 
 		err := h.teamUsecase.InviteUsers(teamId, userId, req.TargetUserEmails)
 		if err != nil {
