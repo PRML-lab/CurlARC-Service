@@ -36,6 +36,7 @@ func InitRouting(
 	userGroup.PATCH("/me", userHandler.UpdateUser())
 	userGroup.DELETE("/me", userHandler.DeleteUser())
 	userGroup.GET("/me/teams", teamHandler.GetTeamsByUserId())
+	userGroup.GET("/me/teams/invited", teamHandler.GetInvitedTeams())
 
 	// チーム関連のエンドポイント
 	teamGroup := authGroup.Group("/teams")

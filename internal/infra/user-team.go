@@ -77,6 +77,22 @@ func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]stri
 	return teamIds, nil
 }
 
+func (userTeamRepo *UserTeamRepository) FindInvitedTeamsByUserId(userId string) ([]string, error) {
+
+	var userTeams []*model.UserTeam
+	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, "INVITED").Find(&userTeams)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var teamIds []string
+	for _, userTeam := range userTeams {
+		teamIds = append(teamIds, userTeam.TeamId)
+	}
+
+	return teamIds, nil
+}
+
 func (userTeamRepo *UserTeamRepository) UpdateState(userId, teamId string) error {
 	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
 	result := userTeamRepo.SqlHandler.Conn.Model(userTeam).Update("state", "MEMBER")
