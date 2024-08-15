@@ -4,6 +4,7 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"errors"
+	"fmt"
 )
 
 type TeamUsecase interface {
@@ -14,7 +15,7 @@ type TeamUsecase interface {
 	DeleteTeam(id string) error
 
 	// User関連
-	InviteUser(teamId, userId, targetId string) error
+	InviteUsers(teamId, userId string, targetUserEmails []string) error
 	AcceptInvitation(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
 	GetTeamsByUserId(userId string) ([]*model.Team, error)
@@ -88,47 +89,61 @@ func (usecase *teamUsecase) DeleteTeam(id string) error {
 	return nil
 }
 
-func (usecase *teamUsecase) InviteUser(teamId, userId, targetId string) error {
+func (usecase *teamUsecase) InviteUsers(teamId, userId string, targetUserEmails []string) error {
 	// Check existence of team and user
 	_, err := usecase.teamRepo.FindById(teamId)
 	if err != nil {
-		return err
+			return err
 	}
 	_, err = usecase.userRepo.FindById(userId)
 	if err != nil {
-		return err
-	}
-	_, err = usecase.userRepo.FindById(targetId)
-	if err != nil {
-		return err
+			return err
 	}
 
 	// Check if the inviter is a member of the team
 	isMember, err := usecase.userTeamRepo.IsMember(userId, teamId)
 	if err != nil {
-		return err
+			return err
 	}
 	if !isMember {
-		return errors.New("inviter is not a member of the team")
+			return errors.New("inviter is not a member of the team")
 	}
 
-	// Check if the target user is already a member of the team
-	isMember, err = usecase.userTeamRepo.IsMember(targetId, teamId)
-	if err != nil {
-		return err
-	}
-	if isMember {
-		return errors.New("target user is already a member of the team")
+	var inviteErrors []error
+
+	for _, targetEmail := range targetUserEmails {
+			// Check existence of target user
+			targetUser, err := usecase.userRepo.FindByEmail(targetEmail)
+			if err != nil {
+					inviteErrors = append(inviteErrors, fmt.Errorf("target user %s not found: %v", targetUser.Email, err))
+					continue
+			}
+
+			// Check if the target user is already a member of the team
+			isMember, err = usecase.userTeamRepo.IsMember(targetUser.Id, teamId)
+			if err != nil {
+					inviteErrors = append(inviteErrors, fmt.Errorf("error checking membership for user %s: %v", targetUser.Email, err))
+					continue
+			}
+			if isMember {
+					inviteErrors = append(inviteErrors, fmt.Errorf("target user %s is already a member of the team", targetUser.Email))
+					continue
+			}
+
+			// Add user to team with "INVITED" state
+			err = usecase.userTeamRepo.Save(targetUser.Id, teamId, "INVITED")
+			if err != nil {
+					inviteErrors = append(inviteErrors, fmt.Errorf("error inviting user %s: %v", targetUser.Email, err))
+					continue
+			}
+
+			// Send invitation email
+			// Note: Add email sending logic here if needed
 	}
 
-	// Add user to team with "INVITED" state
-	err = usecase.userTeamRepo.Save(userId, teamId, "INVITED")
-	if err != nil {
-		return err
+	if len(inviteErrors) > 0 {
+			return fmt.Errorf("one or more invitations failed: %v", inviteErrors)
 	}
-
-	// Send invitation email
-	//////////////////////////
 
 	return nil
 }

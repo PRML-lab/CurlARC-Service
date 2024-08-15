@@ -5,6 +5,7 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -214,13 +215,25 @@ func (h *TeamHandler) DeleteTeam() echo.HandlerFunc {
 // @Success 201 {object} response.SuccessResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Router /teams/{teamId}/invite/{targetId} [post]
-func (h *TeamHandler) InviteUser() echo.HandlerFunc {
+func (h *TeamHandler) InviteUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
 		userId := c.Get("uid").(string)
-		targetId := c.Param("targetId")
 
-		err := h.teamUsecase.InviteUser(teamId, userId, targetId)
+		var req request.InviteUsersRequest
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
+		}
+
+		fmt.Print("req.TargetUserEmails: ", req.TargetUserEmails)
+
+		err := h.teamUsecase.InviteUsers(teamId, userId, req.TargetUserEmails)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -249,10 +262,10 @@ func (h *TeamHandler) InviteUser() echo.HandlerFunc {
 // @Router /teams/{teamId}/accept/{userId} [post]
 func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		teamID := c.Param("teamId")
-		userID := c.Param("userId")
+		teamId := c.Param("teamId")
+		userId := c.Get("uid").(string)
 
-		err := h.teamUsecase.AcceptInvitation(teamID, userID)
+		err := h.teamUsecase.AcceptInvitation(teamId, userId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -281,10 +294,21 @@ func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
 // @Router /teams/{teamId}/remove/{userId} [post]
 func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		teamID := c.Param("teamId")
-		userID := c.Param("userId")
+		teamId := c.Param("teamId")
 
-		err := h.teamUsecase.RemoveMember(teamID, userID)
+		var req request.RemoveUserRequest
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
+		}
+
+		err := h.teamUsecase.RemoveMember(teamId, req.TargetUserId)
+		
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",

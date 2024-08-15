@@ -3,6 +3,9 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"errors"
+
+	"gorm.io/gorm"
 )
 
 type UserTeamRepository struct {
@@ -75,10 +78,14 @@ func (userTeamRepo *UserTeamRepository) Delete(userId, teamId string) error {
 }
 
 func (userTeamRepo *UserTeamRepository) IsMember(userId, teamId string) (bool, error) {
-	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
+	userTeam := &model.UserTeam{}
 	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND team_id = ? AND state = ?", userId, teamId, "MEMBER").First(userTeam)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
 		return false, result.Error
 	}
 	return true, nil
 }
+
