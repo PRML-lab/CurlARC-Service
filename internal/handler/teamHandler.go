@@ -327,19 +327,9 @@ func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
 func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
+		userId := c.Param("userId")
 
-		var req request.RemoveUserRequest
-		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
-				Status: "error",
-				Error: response.ErrorDetail{
-					Code:    http.StatusBadRequest,
-					Message: "invalid request",
-				},
-			})
-		}
-
-		err := h.teamUsecase.RemoveMember(teamId, req.TargetUserId)
+		err := h.teamUsecase.RemoveMember(teamId, userId)
 		
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{

@@ -11,7 +11,3 @@ type UpdateTeamRequest struct {
 type InviteUsersRequest struct {
 	TargetUserEmails []string `json:"target_user_emails"`
 }
-
-type RemoveUserRequest struct {
-	TargetUserId string `json:"userId"`
-}

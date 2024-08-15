@@ -64,7 +64,7 @@ func (userTeamRepo *UserTeamRepository) FindMembersByTeamId(teamId string) ([]st
 func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]string, error) {
 
 	var userTeams []*model.UserTeam
-	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ?", userId).Find(&userTeams)
+	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, "MEMBER").Find(&userTeams)
 	if result.Error != nil {
 		return nil, result.Error
 	}

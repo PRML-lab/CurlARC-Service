@@ -47,7 +47,7 @@ func InitRouting(
 	teamGroup.DELETE("/:teamId", teamHandler.DeleteTeam())
 	teamGroup.POST("/:teamId/invite", teamHandler.InviteUsers())
 	teamGroup.POST("/:teamId/accept", teamHandler.AcceptInvitation())
-	teamGroup.DELETE("/:teamId/remove", teamHandler.RemoveMember())
+	teamGroup.DELETE("/:teamId/:userId", teamHandler.RemoveMember())
 
 	// レコード関連のエンドポイント
 	recordGroup := authGroup.Group("/records")
