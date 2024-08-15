@@ -43,6 +43,24 @@ func (userTeamRepo *UserTeamRepository) FindUsersByTeamId(teamId string) ([]stri
 	return userIds, nil
 }
 
+func (userTeamRepo *UserTeamRepository) FindMembersByTeamId(teamId string) ([]string, error) {
+
+	var userTeams []*model.UserTeam
+	result := userTeamRepo.SqlHandler.Conn.Where("team_id = ? AND state = ?", teamId, "MEMBER").Find(&userTeams)
+	
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	
+	var userIds []string
+	for _, userTeam := range userTeams {
+		userIds = append(userIds, userTeam.UserId)
+	}
+
+	return userIds, nil
+	
+}
+
 func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]string, error) {
 
 	var userTeams []*model.UserTeam

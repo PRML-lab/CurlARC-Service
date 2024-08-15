@@ -207,7 +207,7 @@ func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*model.Team, erro
 }
 
 func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*model.User, error) {
-	userIds, err := usecase.userTeamRepo.FindUsersByTeamId(teamId)
+	userIds, err := usecase.userTeamRepo.FindMembersByTeamId(teamId)
 	if err != nil {
 		return nil, err
 	}
