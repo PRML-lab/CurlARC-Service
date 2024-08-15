@@ -35,6 +35,8 @@ func InitRouting(
 	userGroup.GET("/me", userHandler.GetUser())
 	userGroup.PATCH("/me", userHandler.UpdateUser())
 	userGroup.DELETE("/me", userHandler.DeleteUser())
+	userGroup.GET("/me/teams", teamHandler.GetTeamsByUserId())
+	userGroup.GET("/me/teams/invited", teamHandler.GetInvitedTeams())
 
 	// チーム関連のエンドポイント
 	teamGroup := authGroup.Group("/teams")
@@ -43,9 +45,9 @@ func InitRouting(
 	teamGroup.GET("/:teamId", teamHandler.GetMembers())
 	teamGroup.PATCH("/:teamId", teamHandler.UpdateTeam())
 	teamGroup.DELETE("/:teamId", teamHandler.DeleteTeam())
-	teamGroup.POST("/:teamId/invite/:userId", teamHandler.InviteUser())
-	teamGroup.POST("/:teamId/accept/:userId", teamHandler.AcceptInvitation())
-	teamGroup.DELETE("/:teamId/remove/:userId", teamHandler.RemoveMember())
+	teamGroup.POST("/:teamId/invite", teamHandler.InviteUsers())
+	teamGroup.POST("/:teamId/accept", teamHandler.AcceptInvitation())
+	teamGroup.DELETE("/:teamId/:userId", teamHandler.RemoveMember())
 
 	// レコード関連のエンドポイント
 	recordGroup := authGroup.Group("/records")
@@ -61,7 +63,6 @@ func InitRouting(
 	debug.POST("/teams", teamHandler.CreateTeam())
 	debug.GET("/teams", teamHandler.GetAllTeams())
 	debug.GET("/teams/:teamId", teamHandler.GetMembers())
-	debug.POST("/teams/:teamId/:targetId", teamHandler.InviteUser())
 	debug.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
 	debug.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
 }

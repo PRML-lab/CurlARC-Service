@@ -106,7 +106,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			})
 		}
 
-		cookies, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
+		user, cookie, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
 		if err != nil {
 			if err == repository.ErrUserNotFound {
 				return c.JSON(http.StatusNotFound, response.ErrorResponse{
@@ -127,12 +127,11 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 		}
 
 		// Set the JWT token as a cookie
-		c.SetCookie(cookies[0]) // jwt
-		c.SetCookie(cookies[1]) // uuid
+		c.SetCookie(cookie) // jwt
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   nil,
+			Data:  user,
 		})
 	}
 }
