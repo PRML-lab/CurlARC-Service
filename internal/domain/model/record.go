@@ -6,14 +6,24 @@ import (
 	"gorm.io/datatypes"
 )
 
+type Result string
+
+const (
+	Win  Result = "WIN"
+	Loss Result = "LOSE"
+	Draw Result = "DRAW"
+)
+
 type Record struct {
-	Id       string `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	TeamId   string `json:"team_id"`
-	Team     Team   `gorm:"foreignKey:TeamId; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Place    string `gorm:"size:255" json:"place"`
-	Date     time.Time `json:"date"`
-	EndsData datatypes.JSON `gorm:"type:json" json:"ends_data"`
-	IsPublic bool           `gorm:"default:false" json:"is_public"`
+	Id            string         `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	TeamId        string         `json:"team_id"`
+	Team          Team           `gorm:"foreignKey:TeamId; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Result        Result         `json:"result"`
+	EnemyTeamName string         `json:"enemy_team_name"`
+	Place         string         `gorm:"size:255" json:"place"`
+	Date          time.Time      `json:"date"`
+	EndsData      datatypes.JSON `gorm:"type:json" json:"ends_data"`
+	IsPublic      bool           `gorm:"default:false" json:"is_public"`
 }
 
 type DataPerEnd struct {
