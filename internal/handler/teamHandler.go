@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"CurlARC/internal/domain/model"
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
@@ -56,9 +57,73 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 			})
 		}
 
-		return c.JSON(http.StatusCreated, response.SuccessResponse{
+		return c.JSON(http.StatusNoContent, response.SuccessResponse{
 			Status: "success",
 			Data:   nil,
+		})
+	}
+}
+
+// GetTeamsByUserId retrieves all teams for a specific user.
+// @Summary Get all teams for a user
+// @Description Retrieves a list of all teams associated with a specific user
+// @Tags Teams
+// @Produce json
+// @Success 200 {object} response.SuccessResponse{data=[]response.Team}
+// @Failure 500 {object} response.ErrorResponse
+// @Router /auth/users/me/teams [get]
+func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userId := c.Get("uid").(string)
+
+		teams, err := h.teamUsecase.GetTeamsByUserId(userId)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data: struct {Teams []*model.Team `json:"teams"`}{
+				Teams: teams,
+			} ,
+		})
+	}
+}
+
+// GetInvitedTeams retrieves all teams that a user has been invited to.
+// @Summary Get all invited teams
+// @Description Retrieves a list of all teams that a user has been invited to
+// @Tags Teams
+// @Produce json
+// @Success 200 {object} response.SuccessResponse{data=[]response.Team}
+// @Failure 500 {object} response.ErrorResponse
+// @Router /auth/users/me/teams/invited [get]
+func (h *TeamHandler) GetInvitedTeams() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userId := c.Get("uid").(string)
+
+		teams, err := h.teamUsecase.GetInvitedTeams(userId)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data: struct {Teams []*model.Team `json:"teams"`}{
+				Teams: teams,
+			},
 		})
 	}
 }
@@ -181,13 +246,23 @@ func (h *TeamHandler) DeleteTeam() echo.HandlerFunc {
 // @Success 201 {object} response.SuccessResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Router /teams/{teamId}/invite/{targetId} [post]
-func (h *TeamHandler) InviteUser() echo.HandlerFunc {
+func (h *TeamHandler) InviteUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
 		userId := c.Get("uid").(string)
-		targetId := c.Param("targetId")
 
-		err := h.teamUsecase.InviteUser(teamId, userId, targetId)
+		var req request.InviteUsersRequest
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
+		}
+
+		err := h.teamUsecase.InviteUsers(teamId, userId, req.TargetUserEmails)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -216,10 +291,10 @@ func (h *TeamHandler) InviteUser() echo.HandlerFunc {
 // @Router /teams/{teamId}/accept/{userId} [post]
 func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		teamID := c.Param("teamId")
-		userID := c.Param("userId")
+		teamId := c.Param("teamId")
+		userId := c.Get("uid").(string)
 
-		err := h.teamUsecase.AcceptInvitation(teamID, userID)
+		err := h.teamUsecase.AcceptInvitation(teamId, userId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -248,10 +323,11 @@ func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
 // @Router /teams/{teamId}/remove/{userId} [post]
 func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		teamID := c.Param("teamId")
-		userID := c.Param("userId")
+		teamId := c.Param("teamId")
+		userId := c.Param("userId")
 
-		err := h.teamUsecase.RemoveMember(teamID, userID)
+		err := h.teamUsecase.RemoveMember(teamId, userId)
+		
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -295,37 +371,9 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   users,
-		})
-	}
-}
-
-// GetTeamsByUserId retrieves all teams for a specific user.
-// @Summary Get all teams for a user
-// @Description Retrieves a list of all teams associated with a specific user
-// @Tags Teams
-// @Produce json
-// @Success 200 {object} response.SuccessResponse{data=[]response.Team}
-// @Failure 500 {object} response.ErrorResponse
-// @Router /users/{userId}/teams [get]
-func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		userID := c.Get("uid").(string)
-
-		teams, err := h.teamUsecase.GetTeamsByUserId(userID)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
-				Status: "error",
-				Error: response.ErrorDetail{
-					Code:    http.StatusInternalServerError,
-					Message: err.Error(),
-				},
-			})
-		}
-
-		return c.JSON(http.StatusOK, response.SuccessResponse{
-			Status: "success",
-			Data:   teams,
+			Data:  struct {Members []*model.User `json:"members"`}{
+				Members: users,
+			},
 		})
 	}
 }

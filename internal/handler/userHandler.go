@@ -5,7 +5,6 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
-	"CurlARC/internal/utils"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -107,7 +106,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			})
 		}
 
-		user, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
+		user, cookie, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
 		if err != nil {
 			if err == repository.ErrUserNotFound {
 				return c.JSON(http.StatusNotFound, response.ErrorResponse{
@@ -127,27 +126,12 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			})
 		}
 
-		jwt, err := utils.GenerateJWT(user.Id)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
-				Status: "error",
-				Error: response.ErrorDetail{
-					Code:    http.StatusInternalServerError,
-					Message: err.Error(),
-				},
-			})
-		}
-
-		res := response.SignInResponse{
-			Jwt:   jwt,
-			Id:    user.Id,
-			Name:  user.Name,
-			Email: user.Email,
-		}
+		// Set the JWT token as a cookie
+		c.SetCookie(cookie) // jwt
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   res,
+			Data:  user,
 		})
 	}
 }
