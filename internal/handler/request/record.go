@@ -1,24 +1,24 @@
 package request
 
 import (
+	"CurlARC/internal/domain/model"
 	"time"
 
 	"gorm.io/datatypes"
 )
 
 type CreateRecordRequest struct {
-	Place    string         `json:"place"`
-	Date     time.Time      `json:"date"`
+	Result        model.Result `json:"result"`
+	EnemyTeamName string       `json:"enemy_team_name"`
+	Place         string       `json:"place"`
+	Date          time.Time    `json:"date"`
+}
+
+type AppendEndDataRequest struct {
 	EndsData datatypes.JSON `json:"ends_data"`
 }
 
-type UpdateRecordRequest struct {
-	RecordId string         `json:"user_id"`
-	Place    string         `json:"place"`
-	Date     time.Time      `json:"date"`
-	EndsData datatypes.JSON `json:"ends_data"`
-	IsPublic bool           `json:"is_public"`
-}
+type UpdateRecordRequest = model.RecordUpdate
 
 type SetVisibilityRequest struct {
 	IsPublic bool `json:"is_public"`

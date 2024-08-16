@@ -4,8 +4,6 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"time"
-
-	"gorm.io/datatypes"
 )
 
 type RecordRepository struct {
@@ -17,13 +15,15 @@ func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 	return &recordRepository
 }
 
-func (r *RecordRepository) Create(teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error) {
+func (r *RecordRepository) Create(teamId, place, enemyTeamName string, result model.Result, date time.Time) (*model.Record, error) {
 
 	record := &model.Record{
-		Place:    place,
-		Date:     date,
-		TeamId:   teamId,
-		EndsData: endsData,
+		Result:        result,
+		EnemyTeamName: enemyTeamName,
+		Place:         place,
+		Date:          date,
+		TeamId:        teamId,
+		EndsData:      nil,
 	}
 
 	if err := r.Conn.Create(record).Error; err != nil {
@@ -49,19 +49,44 @@ func (r *RecordRepository) FindByTeamId(teamId string) (*[]model.Record, error) 
 	return &records, nil
 }
 
-func (r *RecordRepository) Update(recordId, place string, date time.Time, endsData datatypes.JSON, isPublic bool) (*model.Record, error) {
-
-	updateRecord := &model.Record{
-		Place:    place,
-		Date:     date,
-		EndsData: endsData,
-		IsPublic: isPublic,
-	}
-
-	if err := r.Conn.Model(&model.Record{}).Where("id = ?", recordId).Updates(updateRecord).Error; err != nil {
+func (r *RecordRepository) Update(recordId string, updates model.RecordUpdate) (*model.Record, error) {
+	// Find the existing record
+	var existingRecord model.Record
+	if err := r.Conn.Where("id = ?", recordId).First(&existingRecord).Error; err != nil {
 		return nil, err
 	}
-	return updateRecord, nil
+
+	// Prepare the fields to be updated
+	updateFields := make(map[string]interface{})
+
+	if updates.Place != nil {
+		updateFields["place"] = *updates.Place
+	}
+	if updates.EnemyTeamName != nil {
+		updateFields["enemy_team_name"] = *updates.EnemyTeamName
+	}
+	if updates.Result != nil {
+		updateFields["result"] = *updates.Result
+	}
+	if updates.Date != nil {
+		updateFields["date"] = *updates.Date
+	}
+	if updates.EndsData != nil {
+		updateFields["ends_data"] = *updates.EndsData
+	}
+	if updates.IsPublic != nil {
+		updateFields["is_public"] = *updates.IsPublic
+	}
+
+	// Update the record with only the fields provided
+	if len(updateFields) > 0 {
+		if err := r.Conn.Model(&existingRecord).Where("id = ?", recordId).Updates(updateFields).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	// Return the updated record
+	return &existingRecord, nil
 }
 
 func (r *RecordRepository) Delete(id string) error {
