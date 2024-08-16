@@ -105,7 +105,7 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 		// 成功時のレスポンス形式も統一
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   records,
+			Data:   struct{ Records []model.Record `json:"records"` }{Records: *records},
 		})
 	}
 }
