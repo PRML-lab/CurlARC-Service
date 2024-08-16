@@ -35,7 +35,7 @@ func NewRecordHandler(recordHandler usecase.RecordUsecase) RecordHandler {
 func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
-		userId := c.Param("userId")
+		userId := c.Get("uid").(string)
 
 		var req request.CreateRecordRequest
 		if err := c.Bind(&req); err != nil {
@@ -55,7 +55,7 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 				Status: "error",
 				Error: response.ErrorDetail{
 					Code:    http.StatusBadRequest,
-					Message: "invalid JSON format",
+					Message: "invalid JSON format in endsData",
 				},
 			})
 		}
