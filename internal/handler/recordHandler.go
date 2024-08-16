@@ -91,7 +91,7 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 		teamId := c.Param("teamId")
 
 		// ユースケースにリクエストを渡す
-		record, err := h.recordUsecase.GetRecordByTeamId(teamId)
+		records, err := h.recordUsecase.GetRecordsByTeamId(teamId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -105,7 +105,7 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 		// 成功時のレスポンス形式も統一
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   record,
+			Data:   records,
 		})
 	}
 }

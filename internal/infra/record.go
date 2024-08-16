@@ -41,12 +41,12 @@ func (r *RecordRepository) FindById(id string) (*model.Record, error) {
 	return &record, nil
 }
 
-func (r *RecordRepository) FindByTeamId(teamId string) (*model.Record, error) {
-	var record model.Record
-	if err := r.Conn.First(&record, "team_id = ?", teamId).Error; err != nil {
+func (r *RecordRepository) FindByTeamId(teamId string) (*[]model.Record, error) {
+	var records []model.Record
+	if err := r.Conn.Find(&records, "team_id = ?", teamId).Error; err != nil {
 		return nil, err
 	}
-	return &record, nil
+	return &records, nil
 }
 
 func (r *RecordRepository) Update(recordId, place string, date time.Time, endsData datatypes.JSON, isPublic bool) (*model.Record, error) {

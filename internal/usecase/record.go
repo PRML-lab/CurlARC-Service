@@ -11,7 +11,7 @@ import (
 
 type RecordUsecase interface {
 	CreateRecord(userId, teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
-	GetRecordByTeamId(teamId string) (*model.Record, error)
+	GetRecordsByTeamId(teamId string) (*[]model.Record, error)
 	UpdateRecord(recordId, userId, place string, date time.Time, endsData datatypes.JSON, isPublic bool) (*model.Record, error)
 	DeleteRecord(id string) error
 
@@ -43,7 +43,7 @@ func (u *recordUsecase) CreateRecord(userId, teamId, place string, date time.Tim
 	return u.recordRepo.Create(teamId, place, date, endsData)
 }
 
-func (u *recordUsecase) GetRecordByTeamId(teamId string) (*model.Record, error) {
+func (u *recordUsecase) GetRecordsByTeamId(teamId string) (*[]model.Record, error) {
 	return u.recordRepo.FindByTeamId(teamId)
 }
 
