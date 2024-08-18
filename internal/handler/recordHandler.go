@@ -136,7 +136,9 @@ func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
 			Status: "success",
 			Data: struct {
 				Record model.Record `json:"record"`
-			}{Record: *record},
+			}{
+				Record: *record,
+			},
 		})
 	}
 }

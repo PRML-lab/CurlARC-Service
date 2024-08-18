@@ -16,9 +16,9 @@ func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 	return &recordRepository
 }
 
-func (r *RecordRepository) Create(teamId, place, enemyTeamName string, result model.Result, date time.Time) (*model.Record, error) {
+func (r *RecordRepository) Create(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
 
-	record := &model.Record{
+	record := model.Record{
 		Result:        result,
 		EnemyTeamName: enemyTeamName,
 		Place:         place,
@@ -27,11 +27,11 @@ func (r *RecordRepository) Create(teamId, place, enemyTeamName string, result mo
 		EndsData:      nil,
 	}
 
-	if err := r.Conn.Create(record).Error; err != nil {
+	if err := r.Conn.Create(&record).Error; err != nil {
 		return nil, err
 	}
 
-	return record, nil
+	return &record, nil
 }
 
 func (r *RecordRepository) FindByRecordId(id string) (*model.Record, error) {

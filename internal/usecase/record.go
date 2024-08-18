@@ -6,6 +6,7 @@ import (
 	"CurlARC/internal/handler/response"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/datatypes"
@@ -44,6 +45,8 @@ func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string
 	if _, err := u.teamRepo.FindById(teamId); err != nil {
 		return nil, err
 	}
+
+	fmt.Print("usecase", enemyTeamName)
 
 	return u.recordRepo.Create(teamId, enemyTeamName, place, result, date)
 }
