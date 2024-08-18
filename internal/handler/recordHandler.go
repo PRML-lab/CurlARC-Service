@@ -117,6 +117,30 @@ func (h *RecordHandler) AppendEndData() echo.HandlerFunc {
 	}
 }
 
+func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		recordId := c.Param("recordId")
+
+		record, err := h.recordUsecase.GetRecordDetailsByRecordId(recordId)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data: struct {
+				Record model.Record `json:"record"`
+			}{Record: *record},
+		})
+	}
+}
+
 // GetRecordByTeamId godoc
 // @Summary Get records by team ID
 // @Description Get all records for a specific team
@@ -142,7 +166,6 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 			})
 		}
 
-		// 成功時のレスポンス形式も統一
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {

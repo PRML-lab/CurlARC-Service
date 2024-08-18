@@ -33,7 +33,7 @@ func (r *RecordRepository) Create(teamId, place, enemyTeamName string, result mo
 	return record, nil
 }
 
-func (r *RecordRepository) FindById(id string) (*model.Record, error) {
+func (r *RecordRepository) FindByRecordId(id string) (*model.Record, error) {
 	var record model.Record
 	if err := r.Conn.First(&record, "id = ?", id).Error; err != nil {
 		return nil, err

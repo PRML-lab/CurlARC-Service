@@ -13,6 +13,7 @@ import (
 type RecordUsecase interface {
 	CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
 	AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error)
+	GetRecordDetailsByRecordId(recordId string) (*model.Record, error)
 	GetRecordsByTeamId(teamId string) (*[]model.Record, error)
 	UpdateRecord(recordId, userId string, updates model.RecordUpdate) (*model.Record, error)
 	DeleteRecord(id string) error
@@ -47,7 +48,7 @@ func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string
 
 func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error) {
 	// Get the record by ID
-	record, err := u.recordRepo.FindById(recordId)
+	record, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
 		return nil, err
 	}
@@ -100,13 +101,17 @@ func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatype
 	return updatedRecord, nil
 }
 
+func (u *recordUsecase) GetRecordDetailsByRecordId(recordId string) (*model.Record, error) {
+	return u.recordRepo.FindByRecordId(recordId)
+}
+
 func (u *recordUsecase) GetRecordsByTeamId(teamId string) (*[]model.Record, error) {
 	return u.recordRepo.FindByTeamId(teamId)
 }
 
 func (u *recordUsecase) UpdateRecord(recordId, userId string, updates model.RecordUpdate) (*model.Record, error) {
 	// Get the record by ID
-	record, err := u.recordRepo.FindById(recordId)
+	record, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +141,7 @@ func (u *recordUsecase) DeleteRecord(id string) error {
 func (u *recordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*model.Record, error) {
 
 	// check if the record exists
-	record, err := u.recordRepo.FindById(recordId)
+	record, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
 		return nil, err
 	}
