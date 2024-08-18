@@ -106,7 +106,14 @@ func (h *RecordHandler) AppendEndData() echo.HandlerFunc {
 		}
 
 		// 成功時のレスポンス形式も統一
-		return c.JSON(http.StatusCreated, record)
+		return c.JSON(http.StatusCreated, response.SuccessResponse{
+			Status: "success",
+			Data: struct {
+				Record model.Record `json:"record"`
+			}{
+				Record: *record,
+			},
+		})
 	}
 }
 

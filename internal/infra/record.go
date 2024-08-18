@@ -57,32 +57,28 @@ func (r *RecordRepository) Update(recordId string, updates model.RecordUpdate) (
 	}
 
 	// Prepare the fields to be updated
-	updateFields := make(map[string]interface{})
-
 	if updates.Place != nil {
-		updateFields["place"] = *updates.Place
+		existingRecord.Place = *updates.Place
 	}
 	if updates.EnemyTeamName != nil {
-		updateFields["enemy_team_name"] = *updates.EnemyTeamName
+		existingRecord.EnemyTeamName = *updates.EnemyTeamName
 	}
 	if updates.Result != nil {
-		updateFields["result"] = *updates.Result
+		existingRecord.Result = *updates.Result
 	}
 	if updates.Date != nil {
-		updateFields["date"] = *updates.Date
+		existingRecord.Date = *updates.Date
 	}
 	if updates.EndsData != nil {
-		updateFields["ends_data"] = *updates.EndsData
+		existingRecord.EndsData = *updates.EndsData
 	}
 	if updates.IsPublic != nil {
-		updateFields["is_public"] = *updates.IsPublic
+		existingRecord.IsPublic = *updates.IsPublic
 	}
 
 	// Update the record with only the fields provided
-	if len(updateFields) > 0 {
-		if err := r.Conn.Model(&existingRecord).Where("id = ?", recordId).Updates(updateFields).Error; err != nil {
-			return nil, err
-		}
+	if err := r.Conn.Save(&existingRecord).Error; err != nil {
+		return nil, err
 	}
 
 	// Return the updated record

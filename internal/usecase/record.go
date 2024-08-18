@@ -3,6 +3,7 @@ package usecase
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -61,18 +62,33 @@ func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatype
 	}
 
 	// Initialize the existing endsData
-	var existingEndsData datatypes.JSON
+	var existingEndsData []model.DataPerEnd
 	if record.EndsData != nil {
-		existingEndsData = record.EndsData
+		if err := json.Unmarshal(record.EndsData, &existingEndsData); err != nil {
+			return nil, errors.New("invalid existing ends data format")
+		}
 	}
 
-	// Merge or append the new data
-	// Assuming endsData is a JSON array; otherwise, adjust the merging logic
-	updatedEndsData := append(existingEndsData, endsData...)
+	// Parse the new endsData
+	var newEndsData []model.DataPerEnd
+	if err := json.Unmarshal(endsData, &newEndsData); err != nil {
+		return nil, errors.New("invalid new ends data format")
+	}
+
+	// Merge or append the new data to the existing data
+	updatedEndsData := append(existingEndsData, newEndsData...)
+
+	// Convert the updated data back to JSON
+	updatedEndsDataJSON, err := json.Marshal(updatedEndsData)
+	if err != nil {
+		return nil, errors.New("failed to marshal updated ends data")
+	}
+
+	updatedEndsDataDatatypesJSON := datatypes.JSON(updatedEndsDataJSON)
 
 	// Prepare the update struct
 	updateFields := model.RecordUpdate{
-		EndsData: &updatedEndsData,
+		EndsData: &updatedEndsDataDatatypesJSON,
 	}
 
 	// Update the record with the new endsData
