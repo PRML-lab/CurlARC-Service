@@ -3,6 +3,7 @@ package usecase
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"CurlARC/internal/handler/response"
 	"encoding/json"
 	"errors"
 	"time"
@@ -14,6 +15,7 @@ type RecordUsecase interface {
 	CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
 	AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error)
 	GetRecordDetailsByRecordId(recordId string) (*model.Record, error)
+	GetRecordIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
 	GetRecordsByTeamId(teamId string) (*[]model.Record, error)
 	UpdateRecord(recordId, userId string, updates model.RecordUpdate) (*model.Record, error)
 	DeleteRecord(id string) error
@@ -103,6 +105,10 @@ func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatype
 
 func (u *recordUsecase) GetRecordDetailsByRecordId(recordId string) (*model.Record, error) {
 	return u.recordRepo.FindByRecordId(recordId)
+}
+
+func (u *recordUsecase) GetRecordIndicesByTeamId(teamId string) (*[]response.RecordIndex, error) {
+	return u.recordRepo.FindIndicesByTeamId(teamId)
 }
 
 func (u *recordUsecase) GetRecordsByTeamId(teamId string) (*[]model.Record, error) {

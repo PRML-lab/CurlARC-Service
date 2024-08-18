@@ -3,6 +3,7 @@ package infra
 import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
+	"CurlARC/internal/handler/response"
 	"time"
 )
 
@@ -39,6 +40,28 @@ func (r *RecordRepository) FindByRecordId(id string) (*model.Record, error) {
 		return nil, err
 	}
 	return &record, nil
+}
+
+func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.RecordIndex, error) {
+	var records []model.Record
+	if err := r.Conn.Select("id", "result", "enemy_team_name", "place", "date").Find(&records, "team_id = ?", teamId).Error; err != nil {
+		return nil, err
+	}
+
+	var recordIndices []response.RecordIndex
+
+	for _, record := range records {
+		recordIndex := response.RecordIndex{
+			Id:            record.Id,
+			Result:        record.Result,
+			EnemyTeamName: record.EnemyTeamName,
+			Place:         record.Place,
+			Date:          record.Date,
+		}
+		recordIndices = append(recordIndices, recordIndex)
+	}
+
+	return &recordIndices, nil
 }
 
 func (r *RecordRepository) FindByTeamId(teamId string) (*[]model.Record, error) {

@@ -150,12 +150,12 @@ func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
 // @Success 200 {object} []model.Record
 // @Failure 500 {object} response.ErrorResponse
 // @Router /record/{teamId} [get]
-func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
+func (h *RecordHandler) GetRecordsByTeamId() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
 
 		// ユースケースにリクエストを渡す
-		records, err := h.recordUsecase.GetRecordsByTeamId(teamId)
+		RecordIndices, err := h.recordUsecase.GetRecordIndicesByTeamId(teamId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -166,11 +166,13 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 			})
 		}
 
-		return c.JSON(http.StatusOK, response.SuccessResponse{
+		return c.JSON(http.StatusOK, response.GetRecordIndicesByTeamIdRespone{
 			Status: "success",
 			Data: struct {
-				Records []model.Record `json:"records"`
-			}{Records: *records},
+				RecordIndices []response.RecordIndex `json:"record_indices"`
+			}{
+				RecordIndices: *RecordIndices,
+			},
 		})
 	}
 }
