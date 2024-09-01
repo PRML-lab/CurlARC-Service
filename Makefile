@@ -5,11 +5,8 @@ MOCK_DIR=./mock
 # モック化したいファイルのあるディレクトリ一覧
 SEARCH_DIR_LIST=\
 internal/domain/repository \
-internal/usecase \
-internal/infrastructure/auth
-
-# Firebase Auth Clientのインターフェースファイル
-FIREBASE_AUTH_INTERFACE=./internal/infra/auth/firebase_auth_client.go
+internal/domain/auth \
+internal/usecase
 
 # モック生成のターゲット
 .PHONY: mockgen
@@ -26,12 +23,6 @@ mockgen:
 			echo "Generated mock for $$file_path"; \
 		done \
 	done
-	@if [ -f $(FIREBASE_AUTH_INTERFACE) ]; then \
-		mockgen -package mock -source=$(FIREBASE_AUTH_INTERFACE) -destination=$(MOCK_DIR)/mock_firebase_auth_client.go; \
-		echo "Generated mock for Firebase Auth Client"; \
-	else \
-		echo "Firebase Auth Client interface file not found. Skipping."; \
-	fi
 	@echo "Mock generation completed."
 
 # モックファイルのクリーンアップ

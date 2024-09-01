@@ -36,21 +36,6 @@ func (m *MockRecordRepository) EXPECT() *MockRecordRepositoryMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockRecordRepository) Create(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", teamId, enemyTeamName, place, result, date)
-	ret0, _ := ret[0].(*model.Record)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockRecordRepositoryMockRecorder) Create(teamId, enemyTeamName, place, result, date interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRecordRepository)(nil).Create), teamId, enemyTeamName, place, result, date)
-}
-
 // Delete mocks base method.
 func (m *MockRecordRepository) Delete(recordId string) error {
 	m.ctrl.T.Helper()
@@ -108,6 +93,21 @@ func (m *MockRecordRepository) FindIndicesByTeamId(teamId string) (*[]response.R
 func (mr *MockRecordRepositoryMockRecorder) FindIndicesByTeamId(teamId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIndicesByTeamId", reflect.TypeOf((*MockRecordRepository)(nil).FindIndicesByTeamId), teamId)
+}
+
+// Save mocks base method.
+func (m *MockRecordRepository) Save(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", teamId, enemyTeamName, place, result, date)
+	ret0, _ := ret[0].(*model.Record)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockRecordRepositoryMockRecorder) Save(teamId, enemyTeamName, place, result, date interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRecordRepository)(nil).Save), teamId, enemyTeamName, place, result, date)
 }
 
 // Update mocks base method.
