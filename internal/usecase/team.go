@@ -83,7 +83,13 @@ func (usecase *teamUsecase) UpdateTeam(id, name string) error {
 }
 
 func (usecase *teamUsecase) DeleteTeam(id string) error {
-	err := usecase.teamRepo.Delete(id)
+	// Check existence of team
+	_, err := usecase.teamRepo.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	err = usecase.teamRepo.Delete(id)
 	if err != nil {
 		return err
 	}
