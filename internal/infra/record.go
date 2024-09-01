@@ -16,7 +16,7 @@ func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 	return &recordRepository
 }
 
-func (r *RecordRepository) Create(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
+func (r *RecordRepository) Save(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
 
 	record := model.Record{
 		Result:        result,

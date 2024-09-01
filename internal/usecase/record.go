@@ -48,7 +48,7 @@ func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string
 
 	fmt.Print("usecase", enemyTeamName)
 
-	return u.recordRepo.Create(teamId, enemyTeamName, place, result, date)
+	return u.recordRepo.Save(teamId, enemyTeamName, place, result, date)
 }
 
 func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error) {

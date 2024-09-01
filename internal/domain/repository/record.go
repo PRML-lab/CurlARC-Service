@@ -8,7 +8,7 @@ import (
 )
 
 type RecordRepository interface {
-	Create(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
+	Save(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
 	FindByRecordId(recordId string) (*model.Record, error)
 	FindIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
 	FindByTeamId(teamId string) (*[]model.Record, error)
