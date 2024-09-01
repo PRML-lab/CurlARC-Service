@@ -49,6 +49,7 @@ func (usecase *userUsecase) SignUp(ctx context.Context, idToken, name, email str
 
 	if _, err := usecase.userRepo.Save(user); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			usecase.authClient.DeleteUser(ctx, token.UID) // dbへの保存が失敗したらfirebase上のユーザーも削除
 			return repository.ErrEmailExists
 		}
 		usecase.authClient.DeleteUser(ctx, token.UID) // dbへの保存が失敗したらfirebase上のユーザーも削除
