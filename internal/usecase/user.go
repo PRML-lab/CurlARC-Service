@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"CurlARC/internal/domain/auth"
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/utils"
@@ -8,7 +9,7 @@ import (
 	"errors"
 	"net/http"
 
-	"firebase.google.com/go/v4/auth"
+	firebaseAuth "firebase.google.com/go/v4/auth"
 	"gorm.io/gorm"
 )
 
@@ -25,10 +26,10 @@ type UserUsecase interface {
 
 type userUsecase struct {
 	userRepo   repository.UserRepository
-	authClient *auth.Client
+	authClient auth.AuthClient
 }
 
-func NewUserUsecase(userRepo repository.UserRepository, authCli *auth.Client) UserUsecase {
+func NewUserUsecase(userRepo repository.UserRepository, authCli auth.AuthClient) UserUsecase {
 	return &userUsecase{userRepo: userRepo, authClient: authCli}
 }
 
@@ -98,7 +99,7 @@ func (usecase *userUsecase) GetUser(ctx context.Context, id string) (*model.User
 func (usecase *userUsecase) UpdateUser(ctx context.Context, id, name, email string) error {
 
 	// Firebase上のユーザー情報を更新
-	params := (&auth.UserToUpdate{}).
+	params := (&firebaseAuth.UserToUpdate{}).
 		Email(email).
 		DisplayName(name)
 
