@@ -40,3 +40,7 @@ clean-mocks:
 	@echo "Cleaning up mock files..."
 	@rm -rf $(MOCK_DIR)
 	@echo "Mock cleanup completed."
+
+
+test:
+	go test -v ./...
