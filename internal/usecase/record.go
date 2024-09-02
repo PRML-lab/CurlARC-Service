@@ -13,8 +13,8 @@ import (
 )
 
 type RecordUsecase interface {
-	CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
-	AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error)
+	CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) // Create a new record which has no endsData
+	AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error)                                // Append endsData to an existing record
 	GetRecordDetailsByRecordId(recordId string) (*model.Record, error)
 	GetRecordIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
 	GetRecordsByTeamId(teamId string) (*[]model.Record, error)
@@ -37,8 +37,12 @@ func NewRecordUsecase(recordRepo repository.RecordRepository, userTeamRepo repos
 func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
 
 	// check if the user is a member of the team
-	if _, err := u.userTeamRepo.IsMember(userId, teamId); err != nil {
+	isMember, err := u.userTeamRepo.IsMember(userId, teamId)
+	if err != nil {
 		return nil, err
+	}
+	if !isMember {
+		return nil, errors.New("user is not a member of the team")
 	}
 
 	// check if the team exists
