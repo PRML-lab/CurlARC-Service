@@ -982,28 +982,47 @@ const docTemplate = `{
                 "date": {
                     "type": "string"
                 },
-                "endsData": {
+                "ends_data": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
+                "enemy_team_name": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean"
                 },
                 "place": {
                     "type": "string"
                 },
+                "result": {
+                    "$ref": "#/definitions/model.Result"
+                },
                 "team": {
                     "$ref": "#/definitions/model.Team"
                 },
-                "teamId": {
+                "team_id": {
                     "type": "string"
                 }
             }
+        },
+        "model.Result": {
+            "type": "string",
+            "enum": [
+                "WIN",
+                "LOSE",
+                "DRAW"
+            ],
+            "x-enum-varnames": [
+                "Win",
+                "Loss",
+                "Draw"
+            ]
         },
         "model.Team": {
             "type": "object",
@@ -1042,14 +1061,14 @@ const docTemplate = `{
                 "date": {
                     "type": "string"
                 },
-                "ends_data": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
+                "enemy_team_name": {
+                    "type": "string"
                 },
                 "place": {
                     "type": "string"
+                },
+                "result": {
+                    "$ref": "#/definitions/model.Result"
                 }
             }
         },
@@ -1111,14 +1130,17 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
+                "enemy_team_name": {
+                    "type": "string"
+                },
                 "is_public": {
                     "type": "boolean"
                 },
                 "place": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "string"
+                "result": {
+                    "$ref": "#/definitions/model.Result"
                 }
             }
         },

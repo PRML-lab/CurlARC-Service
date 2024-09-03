@@ -3,21 +3,35 @@ definitions:
     properties:
       date:
         type: string
-      endsData:
+      ends_data:
         items:
           type: integer
         type: array
+      enemy_team_name:
+        type: string
       id:
         type: string
-      isPublic:
+      is_public:
         type: boolean
       place:
         type: string
+      result:
+        $ref: '#/definitions/model.Result'
       team:
         $ref: '#/definitions/model.Team'
-      teamId:
+      team_id:
         type: string
     type: object
+  model.Result:
+    enum:
+    - WIN
+    - LOSE
+    - DRAW
+    type: string
+    x-enum-varnames:
+    - Win
+    - Loss
+    - Draw
   model.Team:
     properties:
       id:
@@ -42,12 +56,12 @@ definitions:
     properties:
       date:
         type: string
-      ends_data:
-        items:
-          type: integer
-        type: array
+      enemy_team_name:
+        type: string
       place:
         type: string
+      result:
+        $ref: '#/definitions/model.Result'
     type: object
   request.CreateTeamRequest:
     properties:
@@ -86,12 +100,14 @@ definitions:
         items:
           type: integer
         type: array
+      enemy_team_name:
+        type: string
       is_public:
         type: boolean
       place:
         type: string
-      user_id:
-        type: string
+      result:
+        $ref: '#/definitions/model.Result'
     type: object
   request.UpdateTeamRequest:
     properties:
