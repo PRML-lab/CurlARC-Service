@@ -13,7 +13,7 @@ type RecordIndex struct {
 	Date          time.Time    `json:"date"`
 }
 
-type GetRecordIndicesByTeamIdRespone struct {
+type GetRecordIndicesByTeamIdResponse struct {
 	Status string `json:"status"`
 	Data   struct {
 		RecordIndices []RecordIndex `json:"record_indices"`

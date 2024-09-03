@@ -168,7 +168,7 @@ func (h *RecordHandler) GetRecordsByTeamId() echo.HandlerFunc {
 			})
 		}
 
-		return c.JSON(http.StatusOK, response.GetRecordIndicesByTeamIdRespone{
+		return c.JSON(http.StatusOK, response.GetRecordIndicesByTeamIdResponse{
 			Status: "success",
 			Data: struct {
 				RecordIndices []response.RecordIndex `json:"record_indices"`
