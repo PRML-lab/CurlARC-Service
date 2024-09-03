@@ -35,9 +35,42 @@ func NewRecordHandler(recordHandler usecase.RecordUsecase) RecordHandler {
 func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
-		userId := c.Param("userId")
+		userId := c.Get("uid").(string)
 
 		var req request.CreateRecordRequest
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusBadRequest,
+					Message: "invalid request",
+				},
+			})
+		}
+
+		// ユースケースにリクエストを渡す
+		record, err := h.recordUsecase.CreateRecord(userId, teamId, req.EnemyTeamName, req.Place, req.Result, req.Date)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		// 成功時のレスポンス形式も統一
+		return c.JSON(http.StatusCreated, record)
+	}
+}
+
+func (h *RecordHandler) AppendEndData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		recordId := c.Param("recordId")
+		userId := c.Get("uid").(string)
+
+		var req request.AppendEndDataRequest
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
 				Status: "error",
@@ -55,13 +88,13 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 				Status: "error",
 				Error: response.ErrorDetail{
 					Code:    http.StatusBadRequest,
-					Message: "invalid JSON format",
+					Message: "invalid JSON format in endsData",
 				},
 			})
 		}
 
 		// ユースケースにリクエストを渡す
-		record, err := h.recordUsecase.CreateRecord(userId, teamId, req.Place, req.Date, req.EndsData)
+		record, err := h.recordUsecase.AppendEndData(recordId, userId, req.EndsData)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -73,7 +106,40 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 		}
 
 		// 成功時のレスポンス形式も統一
-		return c.JSON(http.StatusCreated, record)
+		return c.JSON(http.StatusCreated, response.SuccessResponse{
+			Status: "success",
+			Data: struct {
+				Record model.Record `json:"record"`
+			}{
+				Record: *record,
+			},
+		})
+	}
+}
+
+func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		recordId := c.Param("recordId")
+
+		record, err := h.recordUsecase.GetRecordDetailsByRecordId(recordId)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data: struct {
+				Record model.Record `json:"record"`
+			}{
+				Record: *record,
+			},
+		})
 	}
 }
 
@@ -86,12 +152,12 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 // @Success 200 {object} []model.Record
 // @Failure 500 {object} response.ErrorResponse
 // @Router /record/{teamId} [get]
-func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
+func (h *RecordHandler) GetRecordsByTeamId() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
 
 		// ユースケースにリクエストを渡す
-		record, err := h.recordUsecase.GetRecordByTeamId(teamId)
+		RecordIndices, err := h.recordUsecase.GetRecordIndicesByTeamId(teamId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -102,10 +168,13 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 			})
 		}
 
-		// 成功時のレスポンス形式も統一
-		return c.JSON(http.StatusOK, response.SuccessResponse{
+		return c.JSON(http.StatusOK, response.GetRecordIndicesByTeamIdResponse{
 			Status: "success",
-			Data:   record,
+			Data: struct {
+				RecordIndices []response.RecordIndex `json:"record_indices"`
+			}{
+				RecordIndices: *RecordIndices,
+			},
 		})
 	}
 }
@@ -126,7 +195,7 @@ func (h *RecordHandler) GetRecordByTeamId() echo.HandlerFunc {
 func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")
-		userId := c.Param("userId")
+		userId := c.Get("uid").(string)
 
 		var req request.UpdateRecordRequest
 		if err := c.Bind(&req); err != nil {
@@ -141,7 +210,7 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 
 		// Validate JSON format
 		var ends []model.DataPerEnd
-		if err := json.Unmarshal([]byte(req.EndsData), &ends); err != nil {
+		if err := json.Unmarshal([]byte(*req.EndsData), &ends); err != nil {
 			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
 				Status: "error",
 				Error: response.ErrorDetail{
@@ -152,7 +221,7 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 		}
 
 		// ユースケースにリクエストを渡す
-		record, err := h.recordUsecase.UpdateRecord(recordId, userId, req.Place, req.Date, req.EndsData, req.IsPublic)
+		record, err := h.recordUsecase.UpdateRecord(recordId, userId, req)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",

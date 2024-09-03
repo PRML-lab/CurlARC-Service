@@ -51,8 +51,10 @@ func InitRouting(
 
 	// レコード関連のエンドポイント
 	recordGroup := authGroup.Group("/records")
-	recordGroup.POST("/:teamId/:userId", recordHandler.CreateRecord())
-	recordGroup.GET("/:teamId", recordHandler.GetRecordByTeamId())
+	recordGroup.POST("/:teamId", recordHandler.CreateRecord())
+	recordGroup.PATCH("/:recordId/append", recordHandler.AppendEndData())
+	recordGroup.GET("/:recordId/detail", recordHandler.GetRecordDetailsByRecordId())
+	recordGroup.GET("/:teamId", recordHandler.GetRecordsByTeamId())
 	recordGroup.PATCH("/:recordId/:userId", recordHandler.UpdateRecord())
 	recordGroup.DELETE("/:recordId", recordHandler.DeleteRecord())
 	recordGroup.PATCH("/:recordId/userId/visibility", recordHandler.SetVisibility())

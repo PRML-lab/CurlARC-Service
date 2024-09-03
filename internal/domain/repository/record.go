@@ -4,14 +4,14 @@ import (
 	"time"
 
 	"CurlARC/internal/domain/model"
-
-	"gorm.io/datatypes"
+	"CurlARC/internal/handler/response"
 )
 
 type RecordRepository interface {
-	Create(teamId, place string, date time.Time, endsData datatypes.JSON) (*model.Record, error)
-	FindById(recordId string) (*model.Record, error)
-	FindByTeamId(teamId string) (*model.Record, error)
-	Update(recordId, place string, date time.Time, endsData datatypes.JSON, isPulbic bool) (*model.Record, error)
+	Create(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
+	FindByRecordId(recordId string) (*model.Record, error)
+	FindIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
+	FindByTeamId(teamId string) (*[]model.Record, error)
+	Update(recordId string, updates model.RecordUpdate) (*model.Record, error)
 	Delete(recordId string) error
 }

@@ -8,7 +8,14 @@ type User struct {
 }
 
 type UserTeam struct {
-	UserId string `gorm:"primaryKey;constraint:OnDelete:CASCADE;" json:"user_id"`
-	TeamId string `gorm:"type:uuid;primaryKey;constraint:OnDelete:CASCADE;" json:"team_id"`
-	State  string `gorm:"size:255" json:"state"` // "INVITED" or "MEMBER"
+	UserId string        `gorm:"primaryKey;constraint:OnDelete:CASCADE;" json:"user_id"`
+	TeamId string        `gorm:"type:uuid;primaryKey;constraint:OnDelete:CASCADE;" json:"team_id"`
+	State  UserTeamState `gorm:"size:255" json:"state"`
 }
+
+type UserTeamState string
+
+const (
+	Invited UserTeamState = "INVITED"
+	Member  UserTeamState = "MEMBER"
+)
