@@ -5,7 +5,6 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -31,7 +30,7 @@ func NewRecordHandler(recordHandler usecase.RecordUsecase) RecordHandler {
 // @Success 201 {object} model.Record
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /record/{teamId}/{userId} [post]
+// @Router /auth/record/{teamId}/{userId} [post]
 func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -65,11 +64,25 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 	}
 }
 
+// AppendEndData godoc
+// @Summary Append end data
+// @Description Append end data to a record by its ID and user ID
+// @Tags records
+// @Accept  json
+// @Produce  json
+// @Param recordId path string true "Record ID"
+// @Param userId path string true "User ID"
+// @Param endsData body request.AppendEndDataRequest true "End Data"
+// @Success 201 {object} model.Record
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /auth/record/{recordId}/{userId}/end [post]
 func (h *RecordHandler) AppendEndData() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")
 		userId := c.Get("uid").(string)
 
+		// validate request
 		var req request.AppendEndDataRequest
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
@@ -81,19 +94,7 @@ func (h *RecordHandler) AppendEndData() echo.HandlerFunc {
 			})
 		}
 
-		// Validate JSON format
-		var ends []model.DataPerEnd
-		if err := json.Unmarshal([]byte(req.EndsData), &ends); err != nil {
-			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
-				Status: "error",
-				Error: response.ErrorDetail{
-					Code:    http.StatusBadRequest,
-					Message: "invalid JSON format in endsData",
-				},
-			})
-		}
-
-		// ユースケースにリクエストを渡す
+		// call usecase
 		record, err := h.recordUsecase.AppendEndData(recordId, userId, req.EndsData)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
@@ -105,7 +106,7 @@ func (h *RecordHandler) AppendEndData() echo.HandlerFunc {
 			})
 		}
 
-		// 成功時のレスポンス形式も統一
+		// return response
 		return c.JSON(http.StatusCreated, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
@@ -151,7 +152,7 @@ func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
 // @Param teamId path string true "Team ID"
 // @Success 200 {object} []model.Record
 // @Failure 500 {object} response.ErrorResponse
-// @Router /record/{teamId} [get]
+// @Router /auth/record/{teamId} [get]
 func (h *RecordHandler) GetRecordsByTeamId() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -191,12 +192,13 @@ func (h *RecordHandler) GetRecordsByTeamId() echo.HandlerFunc {
 // @Success 200 {object} model.Record
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /record/{recordId}/{userId} [patch]
+// @Router /auth/record/{recordId}/{userId} [patch]
 func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")
 		userId := c.Get("uid").(string)
 
+		// validate request
 		var req request.UpdateRecordRequest
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
@@ -208,19 +210,7 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 			})
 		}
 
-		// Validate JSON format
-		var ends []model.DataPerEnd
-		if err := json.Unmarshal([]byte(*req.EndsData), &ends); err != nil {
-			return c.JSON(http.StatusBadRequest, response.ErrorResponse{
-				Status: "error",
-				Error: response.ErrorDetail{
-					Code:    http.StatusBadRequest,
-					Message: "invalid JSON format",
-				},
-			})
-		}
-
-		// ユースケースにリクエストを渡す
+		// call usecase
 		record, err := h.recordUsecase.UpdateRecord(recordId, userId, req)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
@@ -232,7 +222,7 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 			})
 		}
 
-		// 成功時のレスポンス形式も統一
+		// return response
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data:   record,
@@ -248,7 +238,7 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 // @Param recordId path string true "Record ID"
 // @Success 200 {object} response.SuccessResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /record/{recordId} [delete]
+// @Router /auth/record/{recordId} [delete]
 func (h *RecordHandler) DeleteRecord() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")
@@ -285,7 +275,7 @@ func (h *RecordHandler) DeleteRecord() echo.HandlerFunc {
 // @Success 200 {object} model.Record
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /record/{recordId}/{userId}/visibility [patch]
+// @Router /auth/record/{recordId}/{userId}/visibility [patch]
 func (h *RecordHandler) SetVisibility() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		recordId := c.Param("recordId")

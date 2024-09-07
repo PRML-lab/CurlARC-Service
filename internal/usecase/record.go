@@ -4,17 +4,14 @@ import (
 	"CurlARC/internal/domain/model"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/handler/response"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
-
-	"gorm.io/datatypes"
 )
 
 type RecordUsecase interface {
 	CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) // Create a new record which has no endsData
-	AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error)                                // Append endsData to an existing record
+	AppendEndData(recordId, userId string, endsData []model.DataPerEnd) (*model.Record, error)                            // Append endsData to an existing record
 	GetRecordDetailsByRecordId(recordId string) (*model.Record, error)
 	GetRecordIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
 	GetRecordsByTeamId(teamId string) (*[]model.Record, error)
@@ -55,15 +52,15 @@ func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string
 	return u.recordRepo.Save(teamId, enemyTeamName, place, result, date)
 }
 
-func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error) {
+func (u *recordUsecase) AppendEndData(recordId, userId string, endsData []model.DataPerEnd) (*model.Record, error) {
 	// Get the record by ID
-	record, err := u.recordRepo.FindByRecordId(recordId)
+	currentRecord, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if the user is a member of the team
-	isMember, err := u.userTeamRepo.IsMember(userId, record.TeamId)
+	isMember, err := u.userTeamRepo.IsMember(userId, currentRecord.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -71,38 +68,11 @@ func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatype
 		return nil, errors.New("appender is not a member of the team")
 	}
 
-	// Initialize the existing endsData
-	var existingEndsData []model.DataPerEnd
-	if record.EndsData != nil {
-		if err := json.Unmarshal(record.EndsData, &existingEndsData); err != nil {
-			return nil, errors.New("invalid existing ends data format")
-		}
-	}
-
-	// Parse the new endsData
-	var newEndsData []model.DataPerEnd
-	if err := json.Unmarshal(endsData, &newEndsData); err != nil {
-		return nil, errors.New("invalid new ends data format")
-	}
-
-	// Merge or append the new data to the existing data
-	updatedEndsData := append(existingEndsData, newEndsData...)
-
-	// Convert the updated data back to JSON
-	updatedEndsDataJSON, err := json.Marshal(updatedEndsData)
-	if err != nil {
-		return nil, errors.New("failed to marshal updated ends data")
-	}
-
-	updatedEndsDataDatatypesJSON := datatypes.JSON(updatedEndsDataJSON)
-
-	// Prepare the update struct
-	updateFields := model.RecordUpdate{
-		EndsData: &updatedEndsDataDatatypesJSON,
-	}
+	updatedRecord := currentRecord
+	updatedRecord.AppendEndsData(endsData)
 
 	// Update the record with the new endsData
-	updatedRecord, err := u.recordRepo.Update(recordId, updateFields)
+	updatedRecord, err := u.recordRepo.Update()
 	if err != nil {
 		return nil, err
 	}
