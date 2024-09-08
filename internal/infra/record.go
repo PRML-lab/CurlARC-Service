@@ -40,6 +40,17 @@ func (r *DBRecord) ToDomain() *entity.Record {
 	return record
 }
 
+func (r *DBRecord) FromDomain(record *entity.Record) {
+	r.id = record.GetId().Value()
+	r.teamId = record.GetTeamId()
+	r.result = string(record.GetResult())
+	r.enemyTeamName = record.GetEnemyTeamName()
+	r.place = record.GetPlace()
+	r.date = record.GetDate()
+	r.endsDataJSON = convertToJSON(record.GetEndsData())
+	r.isPublic = record.IsPublic()
+}
+
 // convert DataPerEnd to JSON
 func convertToJSON(data []entity.DataPerEnd) datatypes.JSON {
 	jsonData, err := json.Marshal(data)
@@ -59,34 +70,25 @@ func convertFromJSON(data datatypes.JSON) []entity.DataPerEnd {
 	return result
 }
 
-func (r *RecordRepository) Save(record entity.Record) (*entity.Record, error) {
-	dbRecord := DBRecord{
-		id:            record.GetId().Value(),
-		teamId:        record.GetTeamId(),
-		result:        string(record.GetResult()),
-		enemyTeamName: record.GetEnemyTeamName(),
-		place:         record.GetPlace(),
-		date:          record.GetDate(),
-		endsDataJSON:  convertToJSON(record.GetEndsData()),
-		isPublic:      record.IsPublic(),
-	}
+func (r *RecordRepository) Save(record entity.Record) error {
+	var dbRecord DBRecord
+	dbRecord.FromDomain(&record)
 
 	if err := r.Conn.Create(&dbRecord).Error; err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbRecord.ToDomain(), nil
+	return nil
 }
 
 func (r *RecordRepository) FindByRecordId(recordId string) (*entity.Record, error) {
 	var dbRecord DBRecord
-	if err := r.Conn.First(&dbRecord, "id = ?", id).Error; err != nil {
+	if err := r.Conn.First(&dbRecord, "id = ?", recordId).Error; err != nil {
 		return nil, err
 	}
 	return dbRecord.ToDomain(), nil
 }
 
-// FindIndicesByTeamIdはチームIDでレコードのインデックスを検索します
 func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.RecordIndex, error) {
 	var dbRecords []DBRecord
 	if err := r.Conn.Select("id", "result", "enemy_team_name", "place", "date").Where("team_id = ?", teamId).Find(&dbRecords).Error; err != nil {
@@ -96,11 +98,11 @@ func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.Recor
 	var recordIndices []response.RecordIndex
 	for _, dbRecord := range dbRecords {
 		recordIndex := response.RecordIndex{
-			Id:            dbRecord.Id,
-			Result:        entity.Result(dbRecord.Result),
-			EnemyTeamName: dbRecord.EnemyTeamName,
-			Place:         dbRecord.Place,
-			Date:          dbRecord.Date,
+			Id:            dbRecord.id,
+			Result:        entity.Result(dbRecord.result),
+			EnemyTeamName: dbRecord.enemyTeamName,
+			Place:         dbRecord.place,
+			Date:          dbRecord.date,
 		}
 		recordIndices = append(recordIndices, recordIndex)
 	}
@@ -108,7 +110,6 @@ func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.Recor
 	return &recordIndices, nil
 }
 
-// FindByTeamIdはチームIDでレコードを検索します
 func (r *RecordRepository) FindByTeamId(teamId string) (*[]entity.Record, error) {
 	var dbRecords []DBRecord
 	if err := r.Conn.Where("team_id = ?", teamId).Find(&dbRecords).Error; err != nil {
@@ -123,40 +124,21 @@ func (r *RecordRepository) FindByTeamId(teamId string) (*[]entity.Record, error)
 	return &records, nil
 }
 
-// Updateはレコードを更新します
-func (r *RecordRepository) Update(updatedRecord entity.Record) (*entity.Record, error) {
+func (r *RecordRepository) Update(record entity.Record) error {
 	var dbRecord DBRecord
-	if err := r.Conn.First(&dbRecord, "id = ?", recordId).Error; err != nil {
-		return nil, err
+	if err := r.Conn.First(&dbRecord, "id = ?", record.GetId().Value()).Error; err != nil {
+		return err
 	}
 
-	if updates.Place != nil {
-		dbRecord.Place = *updates.Place
-	}
-	if updates.EnemyTeamName != nil {
-		dbRecord.EnemyTeamName = *updates.EnemyTeamName
-	}
-	if updates.Result != nil {
-		dbRecord.Result = string(*updates.Result)
-	}
-	if updates.Date != nil {
-		dbRecord.Date = *updates.Date
-	}
-	if updates.EndsData != nil {
-		dbRecord.EndsDataJSON = convertToJSON(*updates.EndsData)
-	}
-	if updates.IsPublic != nil {
-		dbRecord.IsPublic = *updates.IsPublic
-	}
+	dbRecord.FromDomain(&record)
 
 	if err := r.Conn.Save(&dbRecord).Error; err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbRecord.ToDomain(), nil
+	return nil
 }
 
-// Deleteはレコードを削除します
 func (r *RecordRepository) Delete(id string) error {
 	if err := r.Conn.Delete(&DBRecord{}, "id = ?", id).Error; err != nil {
 		return err
