@@ -21,8 +21,8 @@ func NewTeam(name string) *Team {
 
 // getter
 
-func (t *Team) GetId() TeamId {
-	return t.id
+func (t *Team) GetId() *TeamId {
+	return &t.id
 }
 
 func (t *Team) GetName() string {
