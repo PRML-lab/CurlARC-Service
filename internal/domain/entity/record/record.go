@@ -3,8 +3,6 @@ package entity
 import (
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Coordinate struct {
@@ -53,14 +51,39 @@ type Record struct {
 	isPublic      bool
 }
 
-// NewRecord creates a new record with a random ID.
-func NewRecord(teamId string) *Record {
-	recordId := NewRecordId(uuid.New().String())
-	return &Record{
-		id:       *recordId,
-		teamId:   teamId,
-		isPublic: false,
+// RecordOption is a functional option for creating a new Record.
+type RecordOption func(*Record) error
+
+func WithEnemyTeamName(name string) RecordOption {
+	return func(r *Record) error {
+		return r.SetEnemyTeamName(name)
 	}
+}
+
+func WithPlace(place string) RecordOption {
+	return func(r *Record) error {
+		return r.SetPlace(place)
+	}
+}
+
+func WithDate(date time.Time) RecordOption {
+	return func(r *Record) error {
+		return r.SetDate(date)
+	}
+}
+
+func NewRecord(teamId string, options ...RecordOption) (*Record, error) {
+	record := &Record{
+		teamId: teamId,
+	}
+
+	for _, opt := range options {
+		if err := opt(record); err != nil {
+			return nil, err
+		}
+	}
+
+	return record, nil
 }
 
 func (r *Record) ValidateEndsData(endsData []DataPerEnd) error {
@@ -69,33 +92,6 @@ func (r *Record) ValidateEndsData(endsData []DataPerEnd) error {
 			return errors.New("each end must contain 8 shots")
 		}
 	}
-	return nil
-}
-
-// SetDate sets the date of the match. Future dates are not allowed.
-func (r *Record) SetDate(date time.Time) error {
-	if date.After(time.Now()) {
-		return errors.New("the match date cannot be in the future")
-	}
-	r.date = date
-	return nil
-}
-
-// SetEndsData sets the ends data of the match and performs basic validation based on curling rules.
-func (r *Record) SetEndsData(endsData []DataPerEnd) error {
-	if err := r.ValidateEndsData(endsData); err != nil {
-		return err
-	}
-	r.endsData = endsData
-	return nil
-}
-
-// AppendEndsData appends ends data to the match and performs basic validation based on curling rules.
-func (r *Record) AppendEndsData(endsData []DataPerEnd) error {
-	if err := r.ValidateEndsData(endsData); err != nil {
-		return err
-	}
-	r.endsData = append(r.endsData, endsData...)
 	return nil
 }
 
@@ -133,3 +129,31 @@ func (r *Record) IsPublic() bool {
 }
 
 // setter
+
+func (r *Record) SetEnemyTeamName(name string) error {
+	r.enemyTeamName = name
+	return nil
+}
+
+func (r *Record) SetPlace(place string) error {
+	r.place = place
+	return nil
+}
+
+// SetDate sets the date of the match. Future dates are not allowed.
+func (r *Record) SetDate(date time.Time) error {
+	if date.After(time.Now()) {
+		return errors.New("the match date cannot be in the future")
+	}
+	r.date = date
+	return nil
+}
+
+// SetEndsData sets the ends data of the match and performs basic validation based on curling rules.
+func (r *Record) SetEndsData(endsData []DataPerEnd) error {
+	if err := r.ValidateEndsData(endsData); err != nil {
+		return err
+	}
+	r.endsData = endsData
+	return nil
+}
