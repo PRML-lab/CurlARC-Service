@@ -1,20 +1,52 @@
 package entity
 
 type User struct {
-	Id    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	id    UserId
+	name  string
+	email string
+	teams []Team
 }
 
-type UserTeam struct {
-	UserId string        `gorm:"primaryKey;constraint:OnDelete:CASCADE;" json:"user_id"`
-	TeamId string        `gorm:"type:uuid;primaryKey;constraint:OnDelete:CASCADE;" json:"team_id"`
-	State  UserTeamState `gorm:"size:255" json:"state"`
+func NewUser(id UserId, name string, email string) *User {
+	return &User{
+		id:    id,
+		name:  name,
+		email: email,
+	}
 }
 
-type UserTeamState string
+// getter
 
-const (
-	Invited UserTeamState = "INVITED"
-	Member  UserTeamState = "MEMBER"
-)
+func (u *User) GetId() UserId {
+	return u.id
+}
+
+func (u *User) GetName() string {
+	return u.name
+}
+
+func (u *User) GetTeams() []Team {
+	return u.teams
+}
+
+// setter
+
+func (u *User) SetName(name string) {
+	u.name = name
+}
+
+func (u *User) SetEmail(email string) {
+	u.email = email
+}
+
+func (u *User) AddTeam(team Team) {
+	u.teams = append(u.teams, team)
+}
+
+func (u *User) RemoveTeam(team Team) {
+	for i, t := range u.teams {
+		if t.GetId().Equals(team.GetId()) {
+			u.teams = append(u.teams[:i], u.teams[i+1:]...)
+		}
+	}
+}
