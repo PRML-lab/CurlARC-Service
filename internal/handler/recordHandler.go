@@ -1,7 +1,7 @@
 package handler
 
 import (
-	entity "CurlARC/internal/domain/entity/record"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"

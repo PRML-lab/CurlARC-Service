@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/usecase"
 	"CurlARC/mock"
@@ -36,7 +36,7 @@ func TestSignUp(t *testing.T) {
 		}
 
 		mockAuth.EXPECT().VerifyIDToken(ctx, idToken).Return(token, nil)
-		mockRepo.EXPECT().Save(gomock.Any()).Return(&model.User{Id: "firebase_uid", Name: name, Email: email}, nil)
+		mockRepo.EXPECT().Save(gomock.Any()).Return(&entity.User{Id: "firebase_uid", Name: name, Email: email}, nil)
 
 		err := usecase.SignUp(ctx, idToken, name, email)
 		if err != nil {
@@ -102,7 +102,7 @@ func TestAuthUser(t *testing.T) {
 		}
 
 		mockAuth.EXPECT().VerifyIDToken(ctx, idToken).Return(token, nil)
-		mockRepo.EXPECT().FindById(token.UID).Return(&model.User{Id: "firebase_uid"}, nil)
+		mockRepo.EXPECT().FindById(token.UID).Return(&entity.User{Id: "firebase_uid"}, nil)
 
 		user, _, err := usecase.AuthUser(ctx, idToken)
 		if err != nil {
@@ -149,7 +149,7 @@ func TestGetAllUsers(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("正常系: ユーザーが正常に取得される", func(t *testing.T) {
-		users := []*model.User{
+		users := []*entity.User{
 			{Id: "1", Name: "John Doe", Email: "John-Doe@gmail.com"},
 			{Id: "2", Name: "Jane Doe", Email: "Jane-Doe@gmail.com"},
 		}
@@ -179,7 +179,7 @@ func TestGetUser(t *testing.T) {
 	userId := "1"
 
 	t.Run("正常系: ユーザーが正常に取得される", func(t *testing.T) {
-		user := &model.User{Id: userId, Name: "John Doe", Email: "example@co.jp"}
+		user := &entity.User{Id: userId, Name: "John Doe", Email: "example@co.jp"}
 		mockRepo.EXPECT().FindById(userId).Return(user, nil)
 
 		result, err := usecase.GetUser(ctx, userId)

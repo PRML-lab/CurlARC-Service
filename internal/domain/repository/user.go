@@ -1,7 +1,7 @@
 package repository
 
 import (
-	entity "CurlARC/internal/domain/entity/user"
+	"CurlARC/internal/domain/entity"
 	"errors"
 )
 

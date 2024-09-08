@@ -1,7 +1,7 @@
 package request
 
 import (
-	entity "CurlARC/internal/domain/entity/record"
+	"CurlARC/internal/domain/entity"
 	"time"
 )
 

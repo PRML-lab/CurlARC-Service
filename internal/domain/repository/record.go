@@ -1,7 +1,7 @@
 package repository
 
 import (
-	entity "CurlARC/internal/domain/entity/record"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/handler/response"
 )
 

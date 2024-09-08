@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	entity "CurlARC/internal/domain/entity/record"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/handler/response"
 	"errors"

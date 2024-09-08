@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 	"errors"
 	"fmt"
@@ -10,7 +10,7 @@ import (
 type TeamUsecase interface {
 	// CRUD
 	CreateTeam(name, userId string) error
-	GetAllTeams() ([]*model.Team, error)
+	GetAllTeams() ([]*entity.Team, error)
 	UpdateTeam(id, name string) error
 	DeleteTeam(id string) error
 
@@ -18,9 +18,9 @@ type TeamUsecase interface {
 	InviteUsers(teamId, userId string, targetUserEmails []string) error
 	AcceptInvitation(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
-	GetTeamsByUserId(userId string) ([]*model.Team, error)
-	GetInvitedTeams(userId string) ([]*model.Team, error)
-	GetMembersByTeamId(teamId string) ([]*model.User, error)
+	GetTeamsByUserId(userId string) ([]*entity.Team, error)
+	GetInvitedTeams(userId string) ([]*entity.Team, error)
+	GetMembersByTeamId(teamId string) ([]*entity.User, error)
 }
 
 type teamUsecase struct {
@@ -34,7 +34,7 @@ func NewTeamUsecase(teamRepo repository.TeamRepository, userRepo repository.User
 }
 
 func (usecase *teamUsecase) CreateTeam(name, userId string) error {
-	team := &model.Team{Name: name}
+	team := &entity.Team{Name: name}
 	createdTeam, err := usecase.teamRepo.Save(team)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (usecase *teamUsecase) CreateTeam(name, userId string) error {
 	return nil
 }
 
-func (usecase *teamUsecase) GetAllTeams() ([]*model.Team, error) {
+func (usecase *teamUsecase) GetAllTeams() ([]*entity.Team, error) {
 	teams, err := usecase.teamRepo.FindAll()
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (usecase *teamUsecase) GetAllTeams() ([]*model.Team, error) {
 	return teams, nil
 }
 
-func (usecase *teamUsecase) GetTeam(id string) (*model.Team, error) {
+func (usecase *teamUsecase) GetTeam(id string) (*entity.Team, error) {
 	team, err := usecase.teamRepo.FindById(id)
 	if err != nil {
 		return nil, err
@@ -195,13 +195,13 @@ func (usecase *teamUsecase) RemoveMember(teamId, userId string) error {
 	return nil
 }
 
-func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*model.Team, error) {
+func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*entity.Team, error) {
 	teamIds, err := usecase.userTeamRepo.FindTeamsByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	var teams []*model.Team
+	var teams []*entity.Team
 	for _, teamId := range teamIds {
 		team, err := usecase.teamRepo.FindById(teamId)
 		if err != nil {
@@ -213,13 +213,13 @@ func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*model.Team, erro
 	return teams, nil
 }
 
-func (usecase *teamUsecase) GetInvitedTeams(userId string) ([]*model.Team, error) {
+func (usecase *teamUsecase) GetInvitedTeams(userId string) ([]*entity.Team, error) {
 	teamIds, err := usecase.userTeamRepo.FindInvitedTeamsByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	var teams []*model.Team
+	var teams []*entity.Team
 	for _, teamId := range teamIds {
 		team, err := usecase.teamRepo.FindById(teamId)
 		if err != nil {
@@ -231,13 +231,13 @@ func (usecase *teamUsecase) GetInvitedTeams(userId string) ([]*model.Team, error
 	return teams, nil
 }
 
-func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*model.User, error) {
+func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*entity.User, error) {
 	userIds, err := usecase.userTeamRepo.FindMembersByTeamId(teamId)
 	if err != nil {
 		return nil, err
 	}
 
-	var users []*model.User
+	var users []*entity.User
 	for _, userId := range userIds {
 		user, err := usecase.userRepo.FindById(userId)
 		if err != nil {

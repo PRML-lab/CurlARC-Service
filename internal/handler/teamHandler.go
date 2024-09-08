@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
@@ -89,9 +89,11 @@ func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data: struct {Teams []*model.Team `json:"teams"`}{
+			Data: struct {
+				Teams []*entity.Team `json:"teams"`
+			}{
 				Teams: teams,
-			} ,
+			},
 		})
 	}
 }
@@ -121,7 +123,9 @@ func (h *TeamHandler) GetInvitedTeams() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data: struct {Teams []*model.Team `json:"teams"`}{
+			Data: struct {
+				Teams []*entity.Team `json:"teams"`
+			}{
 				Teams: teams,
 			},
 		})
@@ -327,7 +331,7 @@ func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 		userId := c.Param("userId")
 
 		err := h.teamUsecase.RemoveMember(teamId, userId)
-		
+
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -351,7 +355,7 @@ func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 // @Tags Teams
 // @Param teamId path string true "Team ID"
 // @Produce json
-// @Success 200 {object} response.SuccessResponse{data=[]model.User}
+// @Success 200 {object} response.SuccessResponse{data=[]entity.User}
 // @Failure 500 {object} response.ErrorResponse
 // @Router /teams/{teamId}/members [get]
 func (h *TeamHandler) GetMembers() echo.HandlerFunc {
@@ -371,7 +375,9 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:  struct {Members []*model.User `json:"members"`}{
+			Data: struct {
+				Members []*entity.User `json:"members"`
+			}{
 				Members: users,
 			},
 		})

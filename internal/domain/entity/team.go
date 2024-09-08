@@ -1,10 +1,14 @@
 package entity
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type Team struct {
-	id   TeamId
-	name string
+	id      TeamId
+	name    string
+	records []Record
+	users   []User
 }
 
 func NewTeam(name string) *Team {

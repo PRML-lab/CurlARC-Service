@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 )
 
@@ -14,7 +14,7 @@ func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
 	return &userRepository
 }
 
-func (userRepo *UserRepository) Save(user *model.User) (*model.User, error) {
+func (userRepo *UserRepository) Save(user *entity.User) (*entity.User, error) {
 	result := userRepo.SqlHandler.Conn.Create(user)
 	if result.Error != nil {
 		return user, result.Error
@@ -22,8 +22,8 @@ func (userRepo *UserRepository) Save(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-func (userRepo *UserRepository) FindAll() ([]*model.User, error) {
-	users := []*model.User{}
+func (userRepo *UserRepository) FindAll() ([]*entity.User, error) {
+	users := []*entity.User{}
 	result := userRepo.SqlHandler.Conn.Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
@@ -31,8 +31,8 @@ func (userRepo *UserRepository) FindAll() ([]*model.User, error) {
 	return users, nil
 }
 
-func (userRepo *UserRepository) FindById(id string) (*model.User, error) {
-	user := new(model.User)
+func (userRepo *UserRepository) FindById(id string) (*entity.User, error) {
+	user := new(entity.User)
 	result := userRepo.SqlHandler.Conn.Where("id = ?", id).First(user)
 	if result.Error != nil {
 		return nil, result.Error
@@ -40,8 +40,8 @@ func (userRepo *UserRepository) FindById(id string) (*model.User, error) {
 	return user, nil
 }
 
-func (userRepo *UserRepository) FindByEmail(email string) (*model.User, error) {
-	user := new(model.User)
+func (userRepo *UserRepository) FindByEmail(email string) (*entity.User, error) {
+	user := new(entity.User)
 	result := userRepo.SqlHandler.Conn.Where("email = ?", email).First(user)
 	if result.Error != nil {
 		return nil, result.Error
@@ -49,7 +49,7 @@ func (userRepo *UserRepository) FindByEmail(email string) (*model.User, error) {
 	return user, nil
 }
 
-func (userRepo *UserRepository) Update(user *model.User) error {
+func (userRepo *UserRepository) Update(user *entity.User) error {
 	result := userRepo.SqlHandler.Conn.Save(user)
 	if result.Error != nil {
 		return result.Error
@@ -58,7 +58,7 @@ func (userRepo *UserRepository) Update(user *model.User) error {
 }
 
 func (userRepo *UserRepository) Delete(id string) error {
-	result := userRepo.SqlHandler.Conn.Delete(&model.User{}, id)
+	result := userRepo.SqlHandler.Conn.Delete(&entity.User{}, id)
 	if result.Error != nil {
 		return result.Error
 	}

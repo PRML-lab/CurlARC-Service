@@ -1,6 +1,6 @@
 package repository
 
-import entity "CurlARC/internal/domain/entity/team"
+import "CurlARC/internal/domain/entity"
 
 type TeamRepository interface {
 	Save(team *entity.Team) error

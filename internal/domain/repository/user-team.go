@@ -1,6 +1,6 @@
 package repository
 
-import entity "CurlARC/internal/domain/entity/user"
+import "CurlARC/internal/domain/entity"
 
 type UserTeamRepository interface {
 	Save(userId, teamId string, state entity.UserTeamState) error

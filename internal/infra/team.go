@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 )
 
@@ -14,7 +14,7 @@ func NewTeamRepository(sqlHandler SqlHandler) repository.TeamRepository {
 	return &teamRepository
 }
 
-func (teamRepo *TeamRepository) Save(team *model.Team) (*model.Team, error) {
+func (teamRepo *TeamRepository) Save(team *entity.Team) (*entity.Team, error) {
 	result := teamRepo.SqlHandler.Conn.Create(team)
 	if result.Error != nil {
 		return team, result.Error
@@ -22,8 +22,8 @@ func (teamRepo *TeamRepository) Save(team *model.Team) (*model.Team, error) {
 	return team, nil
 }
 
-func (teamRepo *TeamRepository) FindAll() ([]*model.Team, error) {
-	teams := []*model.Team{}
+func (teamRepo *TeamRepository) FindAll() ([]*entity.Team, error) {
+	teams := []*entity.Team{}
 	result := teamRepo.SqlHandler.Conn.Find(&teams)
 	if result.Error != nil {
 		return nil, result.Error
@@ -31,8 +31,8 @@ func (teamRepo *TeamRepository) FindAll() ([]*model.Team, error) {
 	return teams, nil
 }
 
-func (teamRepo *TeamRepository) FindById(id string) (*model.Team, error) {
-	team := new(model.Team)
+func (teamRepo *TeamRepository) FindById(id string) (*entity.Team, error) {
+	team := new(entity.Team)
 	result := teamRepo.SqlHandler.Conn.Where("id = ?", id).First(team)
 	if result.Error != nil {
 		return nil, result.Error
@@ -40,7 +40,7 @@ func (teamRepo *TeamRepository) FindById(id string) (*model.Team, error) {
 	return team, nil
 }
 
-func (teamRepo *TeamRepository) Update(team *model.Team) error {
+func (teamRepo *TeamRepository) Update(team *entity.Team) error {
 	result := teamRepo.SqlHandler.Conn.Save(team)
 	if result.Error != nil {
 		return result.Error
@@ -49,7 +49,7 @@ func (teamRepo *TeamRepository) Update(team *model.Team) error {
 }
 
 func (teamRepo *TeamRepository) Delete(id string) error {
-	result := teamRepo.SqlHandler.Conn.Where("id = ?", id).Delete(&model.Team{})
+	result := teamRepo.SqlHandler.Conn.Where("id = ?", id).Delete(&entity.Team{})
 	if result.Error != nil {
 		return result.Error
 	}

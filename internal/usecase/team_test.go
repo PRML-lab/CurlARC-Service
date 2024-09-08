@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/usecase"
 	"CurlARC/mock"
 
@@ -23,20 +23,20 @@ func TestCreateTeam(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	t.Run("正常系: チームが正常に作成される", func(t *testing.T) {
-		team := &model.Team{Name: "Team A"}
+		team := &entity.Team{Name: "Team A"}
 		userId := "user-123"
-		createdTeam := &model.Team{Id: "team-123", Name: "Team A"}
+		createdTeam := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().Save(team).Return(createdTeam, nil)
-		mockUserRepo.EXPECT().FindById(userId).Return(&model.User{Id: userId}, nil)
-		mockUserTeamRepo.EXPECT().Save(userId, createdTeam.Id, model.Member).Return(nil)
+		mockUserRepo.EXPECT().FindById(userId).Return(&entity.User{Id: userId}, nil)
+		mockUserTeamRepo.EXPECT().Save(userId, createdTeam.Id, entity.Member).Return(nil)
 
 		err := teamUsecase.CreateTeam("Team A", userId)
 		assert.NoError(t, err)
 	})
 
 	t.Run("異常系: dbへの保存に失敗する", func(t *testing.T) {
-		team := &model.Team{Name: "Team B"}
+		team := &entity.Team{Name: "Team B"}
 		userId := "user-123"
 
 		mockTeamRepo.EXPECT().Save(team).Return(nil, errors.New("failed to save team"))
@@ -47,9 +47,9 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("異常系: 作成者のユーザーが見つからない", func(t *testing.T) {
-		team := &model.Team{Name: "Team C"}
+		team := &entity.Team{Name: "Team C"}
 		userId := "user-123"
-		createdTeam := &model.Team{Id: "team-123", Name: "Team C"}
+		createdTeam := &entity.Team{Id: "team-123", Name: "Team C"}
 
 		mockTeamRepo.EXPECT().Save(team).Return(createdTeam, nil)
 		mockUserRepo.EXPECT().FindById(userId).Return(nil, errors.New("user not found"))
@@ -60,13 +60,13 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("異常系: user-teamの保存に失敗する", func(t *testing.T) {
-		team := &model.Team{Name: "Team D"}
+		team := &entity.Team{Name: "Team D"}
 		userId := "user-123"
-		createdTeam := &model.Team{Id: "team-123", Name: "Team D"}
+		createdTeam := &entity.Team{Id: "team-123", Name: "Team D"}
 
 		mockTeamRepo.EXPECT().Save(team).Return(createdTeam, nil)
-		mockUserRepo.EXPECT().FindById(userId).Return(&model.User{Id: userId}, nil)
-		mockUserTeamRepo.EXPECT().Save(userId, createdTeam.Id, model.Member).Return(errors.New("failed to save user-team"))
+		mockUserRepo.EXPECT().FindById(userId).Return(&entity.User{Id: userId}, nil)
+		mockUserTeamRepo.EXPECT().Save(userId, createdTeam.Id, entity.Member).Return(errors.New("failed to save user-team"))
 
 		err := teamUsecase.CreateTeam("Team D", userId)
 		assert.Error(t, err)
@@ -85,7 +85,7 @@ func TestGetAllTeams(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	t.Run("正常系: チームが正常に取得される", func(t *testing.T) {
-		teams := []*model.Team{
+		teams := []*entity.Team{
 			{Id: "team-123", Name: "Team A"},
 			{Id: "team-456", Name: "Team B"},
 		}
@@ -118,7 +118,7 @@ func TestUpdateTeam(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	t.Run("正常系: チームが正常に更新される", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockTeamRepo.EXPECT().Update(team).Return(nil)
@@ -136,7 +136,7 @@ func TestUpdateTeam(t *testing.T) {
 	})
 
 	t.Run("異常系: チームの更新に失敗する", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockTeamRepo.EXPECT().Update(team).Return(errors.New("failed to update team"))
@@ -158,7 +158,7 @@ func TestDeleteTeam(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	t.Run("正常系: チームが正常に削除される", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockTeamRepo.EXPECT().Delete("team-123").Return(nil)
@@ -176,7 +176,7 @@ func TestDeleteTeam(t *testing.T) {
 	})
 
 	t.Run("異常系: チームの削除に失敗する", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockTeamRepo.EXPECT().Delete("team-123").Return(errors.New("failed to delete team"))
@@ -198,8 +198,8 @@ func TestInviteUsers(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	t.Run("正常系: ユーザーが正常に招待される", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
-		user := &model.User{Id: "user-123"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
+		user := &entity.User{Id: "user-123"}
 		targetUserEmails := []string{
 			"newcommer1@gmail.com",
 			"newcommer2@gmail.com",
@@ -212,13 +212,13 @@ func TestInviteUsers(t *testing.T) {
 
 		// 招待対象ユーザーの存在確認と招待
 		// 1人目
-		mockUserRepo.EXPECT().FindByEmail("newcommer1@gmail.com").Return(&model.User{Id: "newcommer1"}, nil)
+		mockUserRepo.EXPECT().FindByEmail("newcommer1@gmail.com").Return(&entity.User{Id: "newcommer1"}, nil)
 		mockUserTeamRepo.EXPECT().IsMember("newcommer1", "team-123").Return(false, nil)
-		mockUserTeamRepo.EXPECT().Save("newcommer1", "team-123", model.Invited).Return(nil)
+		mockUserTeamRepo.EXPECT().Save("newcommer1", "team-123", entity.Invited).Return(nil)
 		// 2人目
-		mockUserRepo.EXPECT().FindByEmail("newcommer2@gmail.com").Return(&model.User{Id: "newcommer2"}, nil)
+		mockUserRepo.EXPECT().FindByEmail("newcommer2@gmail.com").Return(&entity.User{Id: "newcommer2"}, nil)
 		mockUserTeamRepo.EXPECT().IsMember("newcommer2", "team-123").Return(false, nil)
-		mockUserTeamRepo.EXPECT().Save("newcommer2", "team-123", model.Invited).Return(nil)
+		mockUserTeamRepo.EXPECT().Save("newcommer2", "team-123", entity.Invited).Return(nil)
 
 		err := teamUsecase.InviteUsers("team-123", "user-123", targetUserEmails)
 		assert.NoError(t, err)
@@ -233,7 +233,7 @@ func TestInviteUsers(t *testing.T) {
 	})
 
 	t.Run("異常系: ユーザーが見つからない", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(nil, errors.New("user not found"))
@@ -244,8 +244,8 @@ func TestInviteUsers(t *testing.T) {
 	})
 
 	t.Run("異常系: 招待者がチームのメンバーではない", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
-		user := &model.User{Id: "user-123"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
+		user := &entity.User{Id: "user-123"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(user, nil)
@@ -268,8 +268,8 @@ func TestAcceptInvitation(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	t.Run("正常系: 招待を受け入れる", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
-		user := &model.User{Id: "user-123"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
+		user := &entity.User{Id: "user-123"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(user, nil)
@@ -288,7 +288,7 @@ func TestAcceptInvitation(t *testing.T) {
 	})
 
 	t.Run("異常系: ユーザーが見つからない", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(nil, errors.New("user not found"))
@@ -310,8 +310,8 @@ func TestRemoveMember(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	t.Run("正常系: メンバーが正常に削除される", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
-		user := &model.User{Id: "user-123"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
+		user := &entity.User{Id: "user-123"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(user, nil)
@@ -330,7 +330,7 @@ func TestRemoveMember(t *testing.T) {
 	})
 
 	t.Run("異常系: ユーザーが見つからない", func(t *testing.T) {
-		team := &model.Team{Id: "team-123", Name: "Team A"}
+		team := &entity.Team{Id: "team-123", Name: "Team A"}
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(nil, errors.New("user not found"))
@@ -353,7 +353,7 @@ func TestGetTeamsByUserId(t *testing.T) {
 
 	t.Run("正常系: ユーザーが所属するチームが正常に取得される", func(t *testing.T) {
 		userId := "user-123"
-		teams := []*model.Team{
+		teams := []*entity.Team{
 			{Id: "team-123", Name: "Team A"},
 			{Id: "team-456", Name: "Team B"},
 		}
@@ -391,7 +391,7 @@ func TestGetInvitedTeams(t *testing.T) {
 
 	t.Run("正常系: ユーザーが招待されているチームが正常に取得される", func(t *testing.T) {
 		userId := "user-123"
-		teams := []*model.Team{
+		teams := []*entity.Team{
 			{Id: "team-123", Name: "Team A"},
 			{Id: "team-456", Name: "Team B"},
 		}
@@ -430,7 +430,7 @@ func TestGetMembersByTeamId(t *testing.T) {
 	t.Run("正常系: チームのメンバーが正常に取得される", func(t *testing.T) {
 		teamId := "team-123"
 		userIds := []string{"user-123", "user-456"}
-		users := []*model.User{
+		users := []*entity.User{
 			{Id: "user-123", Name: "User A"},
 			{Id: "user-456", Name: "User B"},
 		}

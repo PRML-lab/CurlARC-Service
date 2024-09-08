@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"fmt"
 	"os"
 
@@ -36,10 +36,10 @@ func NewSqlHandler() *SqlHandler {
 
 	// マイグレーション
 	err = conn.AutoMigrate(
-		&model.User{},
-		&model.Team{},
-		&model.UserTeam{},
-		&model.Record{},
+		&entity.User{},
+		&entity.Team{},
+		&entity.UserTeam{},
+		&entity.Record{},
 	)
 	if err != nil {
 		panic(err.Error)
