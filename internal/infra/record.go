@@ -70,15 +70,19 @@ func convertFromJSON(data datatypes.JSON) []entity.DataPerEnd {
 	return result
 }
 
-func (r *RecordRepository) Save(record entity.Record) error {
+////////////////////////////////////////////////////////////////
+// implement the methods of the RecordRepository interface
+////////////////////////////////////////////////////////////////
+
+func (r *RecordRepository) Save(record entity.Record) (*entity.Record, error) {
 	var dbRecord DBRecord
 	dbRecord.FromDomain(&record)
 
 	if err := r.Conn.Create(&dbRecord).Error; err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return dbRecord.ToDomain(), nil
 }
 
 func (r *RecordRepository) FindByRecordId(recordId string) (*entity.Record, error) {
@@ -124,19 +128,19 @@ func (r *RecordRepository) FindByTeamId(teamId string) (*[]entity.Record, error)
 	return &records, nil
 }
 
-func (r *RecordRepository) Update(record entity.Record) error {
+func (r *RecordRepository) Update(record entity.Record) (*entity.Record, error) {
 	var dbRecord DBRecord
 	if err := r.Conn.First(&dbRecord, "id = ?", record.GetId().Value()).Error; err != nil {
-		return err
+		return nil, err
 	}
 
 	dbRecord.FromDomain(&record)
 
 	if err := r.Conn.Save(&dbRecord).Error; err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return dbRecord.ToDomain(), nil
 }
 
 func (r *RecordRepository) Delete(id string) error {
