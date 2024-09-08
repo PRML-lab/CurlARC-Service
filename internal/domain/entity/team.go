@@ -19,6 +19,14 @@ func NewTeam(name string) *Team {
 	}
 }
 
+func NewTeamFromDB(id string, name string) *Team {
+	teamId := NewTeamId(id)
+	return &Team{
+		id:   *teamId,
+		name: name,
+	}
+}
+
 // getter
 
 func (t *Team) GetId() *TeamId {
