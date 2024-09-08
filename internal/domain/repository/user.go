@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity/user"
 	"errors"
 )
 
@@ -13,10 +13,10 @@ var (
 
 // UserRepository interface
 type UserRepository interface {
-	Save(user *model.User) (*model.User, error)
-	FindAll() ([]*model.User, error)
-	FindById(id string) (*model.User, error)
-	FindByEmail(email string) (*model.User, error)
-	Update(user *model.User) error
+	Save(user *entity.User) error
+	FindAll() ([]*entity.User, error)
+	FindById(id string) (*entity.User, error)
+	FindByEmail(email string) (*entity.User, error)
+	Update(user *entity.User) error
 	Delete(id string) error
 }

@@ -1,17 +1,15 @@
 package repository
 
 import (
-	"time"
-
-	"CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity/record"
 	"CurlARC/internal/handler/response"
 )
 
 type RecordRepository interface {
-	Save(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
-	FindByRecordId(recordId string) (*model.Record, error)
+	Save(entity.Record) error
+	FindByRecordId(recordId string) (*entity.Record, error)
 	FindIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
-	FindByTeamId(teamId string) (*[]model.Record, error)
-	Update(updatedRecord model.Record) (*model.Record, error)
+	FindByTeamId(teamId string) (*[]entity.Record, error)
+	Update(record entity.Record) error
 	Delete(recordId string) error
 }
