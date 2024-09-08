@@ -21,44 +21,64 @@ type Team struct {
 	Users   []User   `gorm:"many2many:user_teams;"`
 }
 
-func (teamRepo *TeamRepository) Save(team *entity.Team) (*entity.Team, error) {
-	result := teamRepo.SqlHandler.Conn.Create(team)
-	if result.Error != nil {
-		return team, result.Error
-	}
-	return team, nil
+func (team *Team) FromDomain(domain *entity.Team) {
+	team.Id = domain.GetId().Value()
+	team.Name = domain.GetName()
 }
 
-func (teamRepo *TeamRepository) FindAll() ([]*entity.Team, error) {
-	teams := []*entity.Team{}
-	result := teamRepo.SqlHandler.Conn.Find(&teams)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return teams, nil
+func (team *Team) ToDomain() *entity.Team {
+	return entity.NewTeamFromDB(team.Id, team.Name)
 }
 
-func (teamRepo *TeamRepository) FindById(id string) (*entity.Team, error) {
-	team := new(entity.Team)
-	result := teamRepo.SqlHandler.Conn.Where("id = ?", id).First(team)
-	if result.Error != nil {
-		return nil, result.Error
+////////////////////////////////////////
+// Team Repository Implementation
+////////////////////////////////////////
+
+func (r *TeamRepository) Save(team *entity.Team) (*entity.Team, error) {
+	var dbTeam Team
+	dbTeam.FromDomain(team)
+
+	if err := r.SqlHandler.Conn.Create(&dbTeam).Error; err != nil {
+		return nil, err
 	}
-	return team, nil
+
+	return dbTeam.ToDomain(), nil
 }
 
-func (teamRepo *TeamRepository) Update(team *entity.Team) error {
-	result := teamRepo.SqlHandler.Conn.Save(team)
-	if result.Error != nil {
-		return result.Error
+func (r *TeamRepository) FindAll() ([]*entity.Team, error) {
+	var teams []Team
+	if err := r.SqlHandler.Conn.Find(&teams).Error; err != nil {
+		return nil, err
 	}
-	return nil
+
+	var teamsEntity []*entity.Team
+	for _, team := range teams {
+		teamsEntity = append(teamsEntity, team.ToDomain())
+	}
+
+	return teamsEntity, nil
 }
 
-func (teamRepo *TeamRepository) Delete(id string) error {
-	result := teamRepo.SqlHandler.Conn.Where("id = ?", id).Delete(&entity.Team{})
-	if result.Error != nil {
-		return result.Error
+func (r *TeamRepository) FindById(id string) (*entity.Team, error) {
+	var team Team
+	if err := r.SqlHandler.Conn.First(&team, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return team.ToDomain(), nil
+}
+
+func (r *TeamRepository) Update(team *entity.Team) (*entity.Team, error) {
+	var dbTeam Team
+	dbTeam.FromDomain(team)
+	if err := r.SqlHandler.Conn.Save(&dbTeam).Error; err != nil {
+		return nil, err
+	}
+	return dbTeam.ToDomain(), nil
+}
+
+func (r *TeamRepository) Delete(id string) error {
+	if err := r.SqlHandler.Conn.Delete(&Team{}, "id = ?", id).Error; err != nil {
+		return err
 	}
 	return nil
 }

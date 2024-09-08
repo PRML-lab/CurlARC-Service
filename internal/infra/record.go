@@ -31,15 +31,6 @@ type Record struct {
 	IsPublic      bool           `gorm:"type:boolean"`
 }
 
-func (r *Record) ToDomain() *entity.Record {
-	result := entity.Result(r.Result)           // convert string to Result
-	endsData := convertFromJSON(r.EndsDataJSON) // convert JSON to []DataPerEnd
-
-	record := entity.NewRecordFromDB(r.Id, r.TeamId, r.EnemyTeamName, r.Place, result, r.Date, endsData, r.IsPublic) // create a new Record
-
-	return record
-}
-
 func (r *Record) FromDomain(record *entity.Record) {
 	r.Id = record.GetId().Value()
 	r.TeamId = record.GetTeamId()
@@ -49,6 +40,15 @@ func (r *Record) FromDomain(record *entity.Record) {
 	r.Date = record.GetDate()
 	r.EndsDataJSON = convertToJSON(record.GetEndsData())
 	r.IsPublic = record.IsPublic()
+}
+
+func (r *Record) ToDomain() *entity.Record {
+	result := entity.Result(r.Result)           // convert string to Result
+	endsData := convertFromJSON(r.EndsDataJSON) // convert JSON to []DataPerEnd
+
+	record := entity.NewRecordFromDB(r.Id, r.TeamId, r.EnemyTeamName, r.Place, result, r.Date, endsData, r.IsPublic) // create a new Record
+
+	return record
 }
 
 // convert DataPerEnd to JSON
