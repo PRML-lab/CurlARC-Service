@@ -9,12 +9,12 @@ import (
 )
 
 type RecordUsecase interface {
-	CreateRecord(userId, teamId, enemyTeamName, place string, result entity.Result, date time.Time) error // Create a new record which has no endsData
-	AppendEndData(recordId, userId string, endsData []entity.DataPerEnd) error                            // Append endsData to an existing record
+	CreateRecord(userId, teamId, enemyTeamName, place string, result entity.Result, date time.Time) (*entity.Record, error) // Create a new record which has no endsData
+	AppendEndData(recordId, userId string, endsData []entity.DataPerEnd) (*entity.Record, error)                            // Append endsData to an existing record
 	GetRecordDetailsByRecordId(recordId string) (*entity.Record, error)
 	GetRecordIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
 	GetRecordsByTeamId(teamId string) (*[]entity.Record, error)
-	UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) error
+	UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) (*entity.Record, error)
 	DeleteRecord(id string) error
 	SetVisibility(recordId, userId string, isPublic bool) (*entity.Record, error)
 }
@@ -29,20 +29,20 @@ func NewRecordUsecase(recordRepo repository.RecordRepository, userTeamRepo repos
 	return &recordUsecase{recordRepo: recordRepo, userTeamRepo: userTeamRepo, teamRepo: teamRepo}
 }
 
-func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string, result entity.Result, date time.Time) error {
+func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string, result entity.Result, date time.Time) (*entity.Record, error) {
 
 	// check if the user is a member of the team
 	isMember, err := u.userTeamRepo.IsMember(userId, teamId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !isMember {
-		return errors.New("user is not a member of the team")
+		return nil, errors.New("user is not a member of the team")
 	}
 
 	// check if the team exists
 	if _, err := u.teamRepo.FindById(teamId); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create a new record
@@ -53,51 +53,51 @@ func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string
 		entity.WithDate(date),
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Save the record
-	err = u.recordRepo.Save(*record)
+	savedRecord, err := u.recordRepo.Save(*record)
 
-	return err
+	return savedRecord, err
 }
 
-func (u *recordUsecase) AppendEndData(recordId, userId string, endsData []entity.DataPerEnd) error {
+func (u *recordUsecase) AppendEndData(recordId, userId string, endsData []entity.DataPerEnd) (*entity.Record, error) {
 
 	// Get the record by ID
 	currentRecord, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Check if the user is a member of the team
 	isMember, err := u.userTeamRepo.IsMember(userId, currentRecord.GetTeamId())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !isMember {
-		return errors.New("appender is not a member of the team")
+		return nil, errors.New("appender is not a member of the team")
 	}
 
 	// Append the new endsData to the record
 	newEndsData := append(currentRecord.GetEndsData(), endsData...)
 	err = currentRecord.ValidateEndsData(newEndsData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	newRecord := currentRecord
 	err = newRecord.SetEndsData(newEndsData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Update the record with the new endsData
-	err = u.recordRepo.Update(*newRecord)
+	updatedRecord, err := u.recordRepo.Update(*newRecord)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return updatedRecord, nil
 }
 
 func (u *recordUsecase) GetRecordDetailsByRecordId(recordId string) (*entity.Record, error) {
@@ -112,21 +112,21 @@ func (u *recordUsecase) GetRecordsByTeamId(teamId string) (*[]entity.Record, err
 	return u.recordRepo.FindByTeamId(teamId)
 }
 
-func (u *recordUsecase) UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) error {
+func (u *recordUsecase) UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) (*entity.Record, error) {
 
 	// Get the record by ID
 	record, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Check if the user is a member of the team
 	isMember, err := u.userTeamRepo.IsMember(userId, record.GetTeamId())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !isMember {
-		return errors.New("updater is not a member of the team")
+		return nil, errors.New("updater is not a member of the team")
 	}
 
 	// Prepare the update struct
@@ -144,21 +144,21 @@ func (u *recordUsecase) UpdateRecord(recordId, userId, enemyTeamName, place stri
 	if len(endsData) > 0 {
 		err = newRecord.ValidateEndsData(endsData)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		err = newRecord.SetEndsData(endsData)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	// Update the record with only the fields provided in the updates
-	err = u.recordRepo.Update(*newRecord)
+	updatedRecord, err := u.recordRepo.Update(*newRecord)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return updatedRecord, nil
 }
 
 func (u *recordUsecase) DeleteRecord(id string) error {
@@ -186,10 +186,10 @@ func (u *recordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*
 	newRecord := record
 	newRecord.SetVisibility(isPublic)
 
-	err = u.recordRepo.Update(*newRecord)
+	updatedRecord, err := u.recordRepo.Update(*newRecord)
 	if err != nil {
 		return nil, err
 	}
 
-	return newRecord, nil
+	return updatedRecord, nil
 }
