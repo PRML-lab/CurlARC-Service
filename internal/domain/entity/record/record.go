@@ -157,3 +157,7 @@ func (r *Record) SetEndsData(endsData []DataPerEnd) error {
 	r.endsData = endsData
 	return nil
 }
+
+func (r *Record) SetVisibility(isPublic bool) {
+	r.isPublic = isPublic
+}
