@@ -17,8 +17,8 @@ func NewUser(id UserId, name string, email string) *User {
 
 // getter
 
-func (u *User) GetId() UserId {
-	return u.id
+func (u *User) GetId() *UserId {
+	return &u.id
 }
 
 func (u *User) GetName() string {
