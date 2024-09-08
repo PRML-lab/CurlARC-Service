@@ -25,6 +25,10 @@ func (u *User) GetName() string {
 	return u.name
 }
 
+func (u *User) GetEmail() string {
+	return u.email
+}
+
 func (u *User) GetTeams() []Team {
 	return u.teams
 }

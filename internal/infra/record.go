@@ -20,35 +20,35 @@ func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 }
 
 // define the struct for the database
-type DBRecord struct {
-	id            string         `gorm:"type:uuid;primaryKey"`
-	teamId        string         `gorm:"index"`
-	result        string         `gorm:"type:varchar(10)"`
-	enemyTeamName string         `gorm:"type:varchar(255)"`
-	place         string         `gorm:"type:varchar(255)"`
-	date          time.Time      `gorm:"type:timestamp"`
-	endsDataJSON  datatypes.JSON `gorm:"type:json"`
-	isPublic      bool           `gorm:"type:boolean"`
+type Record struct {
+	Id            string         `gorm:"type:uuid;primaryKey"`
+	TeamId        string         `gorm:"foreignKey:TeamId"`
+	Result        string         `gorm:"type:varchar(10)"`
+	EnemyTeamName string         `gorm:"type:varchar(255)"`
+	Place         string         `gorm:"type:varchar(255)"`
+	Date          time.Time      `gorm:"type:timestamp"`
+	EndsDataJSON  datatypes.JSON `gorm:"type:json"`
+	IsPublic      bool           `gorm:"type:boolean"`
 }
 
-func (r *DBRecord) ToDomain() *entity.Record {
-	result := entity.Result(r.result)           // convert string to Result
-	endsData := convertFromJSON(r.endsDataJSON) // convert JSON to []DataPerEnd
+func (r *Record) ToDomain() *entity.Record {
+	result := entity.Result(r.Result)           // convert string to Result
+	endsData := convertFromJSON(r.EndsDataJSON) // convert JSON to []DataPerEnd
 
-	record := entity.NewRecordFromDB(r.id, r.teamId, r.enemyTeamName, r.place, result, r.date, endsData, r.isPublic) // create a new Record
+	record := entity.NewRecordFromDB(r.Id, r.TeamId, r.EnemyTeamName, r.Place, result, r.Date, endsData, r.IsPublic) // create a new Record
 
 	return record
 }
 
-func (r *DBRecord) FromDomain(record *entity.Record) {
-	r.id = record.GetId().Value()
-	r.teamId = record.GetTeamId()
-	r.result = string(record.GetResult())
-	r.enemyTeamName = record.GetEnemyTeamName()
-	r.place = record.GetPlace()
-	r.date = record.GetDate()
-	r.endsDataJSON = convertToJSON(record.GetEndsData())
-	r.isPublic = record.IsPublic()
+func (r *Record) FromDomain(record *entity.Record) {
+	r.Id = record.GetId().Value()
+	r.TeamId = record.GetTeamId()
+	r.Result = string(record.GetResult())
+	r.EnemyTeamName = record.GetEnemyTeamName()
+	r.Place = record.GetPlace()
+	r.Date = record.GetDate()
+	r.EndsDataJSON = convertToJSON(record.GetEndsData())
+	r.IsPublic = record.IsPublic()
 }
 
 // convert DataPerEnd to JSON
@@ -71,11 +71,11 @@ func convertFromJSON(data datatypes.JSON) []entity.DataPerEnd {
 }
 
 ////////////////////////////////////////////////////////////////
-// implement the methods of the RecordRepository interface
+// Record Repository Implementation
 ////////////////////////////////////////////////////////////////
 
 func (r *RecordRepository) Save(record entity.Record) (*entity.Record, error) {
-	var dbRecord DBRecord
+	var dbRecord Record
 	dbRecord.FromDomain(&record)
 
 	if err := r.Conn.Create(&dbRecord).Error; err != nil {
@@ -86,7 +86,7 @@ func (r *RecordRepository) Save(record entity.Record) (*entity.Record, error) {
 }
 
 func (r *RecordRepository) FindByRecordId(recordId string) (*entity.Record, error) {
-	var dbRecord DBRecord
+	var dbRecord Record
 	if err := r.Conn.First(&dbRecord, "id = ?", recordId).Error; err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (r *RecordRepository) FindByRecordId(recordId string) (*entity.Record, erro
 }
 
 func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.RecordIndex, error) {
-	var dbRecords []DBRecord
+	var dbRecords []Record
 	if err := r.Conn.Select("id", "result", "enemy_team_name", "place", "date").Where("team_id = ?", teamId).Find(&dbRecords).Error; err != nil {
 		return nil, err
 	}
@@ -102,11 +102,11 @@ func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.Recor
 	var recordIndices []response.RecordIndex
 	for _, dbRecord := range dbRecords {
 		recordIndex := response.RecordIndex{
-			Id:            dbRecord.id,
-			Result:        entity.Result(dbRecord.result),
-			EnemyTeamName: dbRecord.enemyTeamName,
-			Place:         dbRecord.place,
-			Date:          dbRecord.date,
+			Id:            dbRecord.Id,
+			Result:        entity.Result(dbRecord.Result),
+			EnemyTeamName: dbRecord.EnemyTeamName,
+			Place:         dbRecord.Place,
+			Date:          dbRecord.Date,
 		}
 		recordIndices = append(recordIndices, recordIndex)
 	}
@@ -115,7 +115,7 @@ func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.Recor
 }
 
 func (r *RecordRepository) FindByTeamId(teamId string) (*[]entity.Record, error) {
-	var dbRecords []DBRecord
+	var dbRecords []Record
 	if err := r.Conn.Where("team_id = ?", teamId).Find(&dbRecords).Error; err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (r *RecordRepository) FindByTeamId(teamId string) (*[]entity.Record, error)
 }
 
 func (r *RecordRepository) Update(record entity.Record) (*entity.Record, error) {
-	var dbRecord DBRecord
+	var dbRecord Record
 	if err := r.Conn.First(&dbRecord, "id = ?", record.GetId().Value()).Error; err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (r *RecordRepository) Update(record entity.Record) (*entity.Record, error) 
 }
 
 func (r *RecordRepository) Delete(id string) error {
-	if err := r.Conn.Delete(&DBRecord{}, "id = ?", id).Error; err != nil {
+	if err := r.Conn.Delete(&Record{}, "id = ?", id).Error; err != nil {
 		return err
 	}
 	return nil

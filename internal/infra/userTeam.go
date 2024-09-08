@@ -17,6 +17,12 @@ func NewUserTeamRepository(sqlHandler SqlHandler) repository.UserTeamRepository 
 	return &userTeamRepository
 }
 
+type UserTeam struct {
+	UserId string `gorm:"primaryKey"`
+	TeamId string `gorm:"primaryKey"`
+	State  string `gorm:"type:varchar(100)"`
+}
+
 func (userTeamRepo *UserTeamRepository) Save(userId, teamId string, state entity.UserTeamState) error {
 	userTeam := &entity.UserTeam{UserId: userId, TeamId: teamId, State: state}
 	result := userTeamRepo.SqlHandler.Conn.Create(userTeam)
