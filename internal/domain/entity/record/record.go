@@ -3,6 +3,8 @@ package entity
 import (
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Coordinate struct {
@@ -73,7 +75,9 @@ func WithDate(date time.Time) RecordOption {
 }
 
 func NewRecord(teamId string, options ...RecordOption) (*Record, error) {
+	recordId := NewRecordId(uuid.New().String())
 	record := &Record{
+		id:     *recordId,
 		teamId: teamId,
 	}
 
@@ -86,6 +90,19 @@ func NewRecord(teamId string, options ...RecordOption) (*Record, error) {
 	return record, nil
 }
 
+func NewRecordFromDB(id, teamId, enemyTeamName, place string, result Result, date time.Time, endsData []DataPerEnd, isPublic bool) *Record {
+	return &Record{
+		id:            *NewRecordId(id),
+		teamId:        teamId,
+		result:        result,
+		enemyTeamName: enemyTeamName,
+		place:         place,
+		date:          date,
+		endsData:      endsData,
+		isPublic:      isPublic,
+	}
+}
+
 func (r *Record) ValidateEndsData(endsData []DataPerEnd) error {
 	for _, end := range endsData {
 		if len(end.Shots) != 8 {
@@ -96,8 +113,9 @@ func (r *Record) ValidateEndsData(endsData []DataPerEnd) error {
 }
 
 // getter
-func (r *Record) GetId() RecordId {
-	return r.id
+
+func (r *Record) GetId() *RecordId {
+	return &r.id
 }
 
 func (r *Record) GetTeamId() string {

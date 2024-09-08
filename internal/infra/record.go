@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity/record"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/handler/response"
 	"encoding/json"
@@ -21,33 +21,27 @@ func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 
 // define the struct for the database
 type DBRecord struct {
-	Id            string         `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	TeamId        string         `gorm:"index"`
-	Result        string         `gorm:"type:varchar(10)"`
-	EnemyTeamName string         `gorm:"type:varchar(255)"`
-	Place         string         `gorm:"type:varchar(255)"`
-	Date          time.Time      `gorm:"type:timestamp"`
-	EndsDataJSON  datatypes.JSON `gorm:"type:json"`
-	IsPublic      bool           `gorm:"default:false"`
+	id            string         `gorm:"type:uuid;primaryKey"`
+	teamId        string         `gorm:"index"`
+	result        string         `gorm:"type:varchar(10)"`
+	enemyTeamName string         `gorm:"type:varchar(255)"`
+	place         string         `gorm:"type:varchar(255)"`
+	date          time.Time      `gorm:"type:timestamp"`
+	endsDataJSON  datatypes.JSON `gorm:"type:json"`
+	isPublic      bool           `gorm:"type:boolean"`
 }
 
-func (r *DBRecord) ToDomain() *model.Record {
-	result := model.Result(r.Result)
-	endsData := convertFromJSON(r.EndsDataJSON)
-	return &model.Record{
-		Id:            r.Id,
-		TeamId:        r.TeamId,
-		Result:        &result,
-		EnemyTeamName: &r.EnemyTeamName,
-		Place:         &r.Place,
-		Date:          &r.Date,
-		EndsData:      &endsData,
-		IsPublic:      &r.IsPublic,
-	}
+func (r *DBRecord) ToDomain() *entity.Record {
+	result := entity.Result(r.result)           // convert string to Result
+	endsData := convertFromJSON(r.endsDataJSON) // convert JSON to []DataPerEnd
+
+	record := entity.NewRecordFromDB(r.id, r.teamId, r.enemyTeamName, r.place, result, r.date, endsData, r.isPublic) // create a new Record
+
+	return record
 }
 
-// convertToJSONはドメインモデルのデータをJSONに変換します
-func convertToJSON(data []model.DataPerEnd) datatypes.JSON {
+// convert DataPerEnd to JSON
+func convertToJSON(data []entity.DataPerEnd) datatypes.JSON {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
@@ -55,9 +49,9 @@ func convertToJSON(data []model.DataPerEnd) datatypes.JSON {
 	return jsonData
 }
 
-// convertFromJSONはJSONデータをドメインモデルに変換します
-func convertFromJSON(data datatypes.JSON) []model.DataPerEnd {
-	var result []model.DataPerEnd
+// convert JSON to DataPerEnd
+func convertFromJSON(data datatypes.JSON) []entity.DataPerEnd {
+	var result []entity.DataPerEnd
 	err := json.Unmarshal(data, &result)
 	if err != nil {
 		return nil
@@ -65,15 +59,16 @@ func convertFromJSON(data datatypes.JSON) []model.DataPerEnd {
 	return result
 }
 
-// Saveはレコードをデータベースに保存します
-func (r *RecordRepository) Save(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
+func (r *RecordRepository) Save(record entity.Record) (*entity.Record, error) {
 	dbRecord := DBRecord{
-		TeamId:        teamId,
-		Result:        string(result),
-		EnemyTeamName: enemyTeamName,
-		Place:         place,
-		Date:          date,
-		IsPublic:      false, // デフォルト値
+		id:            record.GetId().Value(),
+		teamId:        record.GetTeamId(),
+		result:        string(record.GetResult()),
+		enemyTeamName: record.GetEnemyTeamName(),
+		place:         record.GetPlace(),
+		date:          record.GetDate(),
+		endsDataJSON:  convertToJSON(record.GetEndsData()),
+		isPublic:      record.IsPublic(),
 	}
 
 	if err := r.Conn.Create(&dbRecord).Error; err != nil {
@@ -83,8 +78,7 @@ func (r *RecordRepository) Save(teamId, enemyTeamName, place string, result mode
 	return dbRecord.ToDomain(), nil
 }
 
-// FindByRecordIdはIDでレコードを検索します
-func (r *RecordRepository) FindByRecordId(id string) (*model.Record, error) {
+func (r *RecordRepository) FindByRecordId(recordId string) (*entity.Record, error) {
 	var dbRecord DBRecord
 	if err := r.Conn.First(&dbRecord, "id = ?", id).Error; err != nil {
 		return nil, err
@@ -103,7 +97,7 @@ func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.Recor
 	for _, dbRecord := range dbRecords {
 		recordIndex := response.RecordIndex{
 			Id:            dbRecord.Id,
-			Result:        model.Result(dbRecord.Result),
+			Result:        entity.Result(dbRecord.Result),
 			EnemyTeamName: dbRecord.EnemyTeamName,
 			Place:         dbRecord.Place,
 			Date:          dbRecord.Date,
@@ -115,13 +109,13 @@ func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.Recor
 }
 
 // FindByTeamIdはチームIDでレコードを検索します
-func (r *RecordRepository) FindByTeamId(teamId string) (*[]model.Record, error) {
+func (r *RecordRepository) FindByTeamId(teamId string) (*[]entity.Record, error) {
 	var dbRecords []DBRecord
 	if err := r.Conn.Where("team_id = ?", teamId).Find(&dbRecords).Error; err != nil {
 		return nil, err
 	}
 
-	var records []model.Record
+	var records []entity.Record
 	for _, dbRecord := range dbRecords {
 		records = append(records, *dbRecord.ToDomain())
 	}
@@ -130,7 +124,7 @@ func (r *RecordRepository) FindByTeamId(teamId string) (*[]model.Record, error) 
 }
 
 // Updateはレコードを更新します
-func (r *RecordRepository) Update(updatedRecord model.Record) (*model.Record, error) {
+func (r *RecordRepository) Update(updatedRecord entity.Record) (*entity.Record, error) {
 	var dbRecord DBRecord
 	if err := r.Conn.First(&dbRecord, "id = ?", recordId).Error; err != nil {
 		return nil, err
