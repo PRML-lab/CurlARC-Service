@@ -10,57 +10,91 @@ type UserRepository struct {
 }
 
 func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
-	userRepository := UserRepository{SqlHandler: sqlHandler}
-	return &userRepository
+	rsitory := UserRepository{SqlHandler: sqlHandler}
+	return &rsitory
 }
 
-func (userRepo *UserRepository) Save(user *entity.User) (*entity.User, error) {
-	result := userRepo.SqlHandler.Conn.Create(user)
-	if result.Error != nil {
-		return user, result.Error
-	}
-	return user, nil
+// define the struct for the database
+type User struct {
+	Id    string `gorm:"primaryKey"`
+	Name  string `gorm:"type:varchar(100)"`
+	Email string `gorm:"uniqueIndex;type:varchar(100)"`
+	Teams []Team `gorm:"many2many:user_teams;"`
 }
 
-func (userRepo *UserRepository) FindAll() ([]*entity.User, error) {
-	users := []*entity.User{}
-	result := userRepo.SqlHandler.Conn.Find(&users)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return users, nil
+func (u *User) FromDomain(user *entity.User) {
+	u.Id = user.GetId().Value()
+	u.Name = user.GetName()
+	u.Email = user.GetEmail()
 }
 
-func (userRepo *UserRepository) FindById(id string) (*entity.User, error) {
-	user := new(entity.User)
-	result := userRepo.SqlHandler.Conn.Where("id = ?", id).First(user)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return user, nil
+func (u *User) ToDomain() *entity.User {
+	user := entity.NewUser(*entity.NewUserId(u.Id), u.Name, u.Email)
+	return user
 }
 
-func (userRepo *UserRepository) FindByEmail(email string) (*entity.User, error) {
-	user := new(entity.User)
-	result := userRepo.SqlHandler.Conn.Where("email = ?", email).First(user)
-	if result.Error != nil {
-		return nil, result.Error
+////////////////////////////////////////
+// User Repository Inplementation
+////////////////////////////////////////
+
+func (r *UserRepository) Save(user *entity.User) (*entity.User, error) {
+	var User User
+	User.FromDomain(user)
+
+	if err := r.Conn.Create(&User).Error; err != nil {
+		return nil, err
 	}
-	return user, nil
+
+	return User.ToDomain(), nil
 }
 
-func (userRepo *UserRepository) Update(user *entity.User) error {
-	result := userRepo.SqlHandler.Conn.Save(user)
-	if result.Error != nil {
-		return result.Error
+func (r *UserRepository) FindAll() ([]*entity.User, error) {
+	var users []User
+	if err := r.Conn.Find(&users).Error; err != nil {
+		return nil, err
 	}
-	return nil
+
+	var usersEntity []*entity.User
+	for _, user := range users {
+		usersEntity = append(usersEntity, user.ToDomain())
+	}
+
+	return usersEntity, nil
 }
 
-func (userRepo *UserRepository) Delete(id string) error {
-	result := userRepo.SqlHandler.Conn.Delete(&entity.User{}, id)
-	if result.Error != nil {
-		return result.Error
+func (r *UserRepository) FindById(id string) (*entity.User, error) {
+	var user User
+	if err := r.Conn.First(&user, "id = ?", id).Error; err != nil {
+		return nil, err
 	}
+
+	return user.ToDomain(), nil
+}
+
+func (r *UserRepository) FindByEmail(email string) (*entity.User, error) {
+	var user User
+	if err := r.Conn.First(&user, "email = ?", email).Error; err != nil {
+		return nil, err
+	}
+
+	return user.ToDomain(), nil
+}
+
+func (r *UserRepository) Update(user *entity.User) (*entity.User, error) {
+	var User User
+	User.FromDomain(user)
+
+	if err := r.Conn.Save(&User).Error; err != nil {
+		return nil, err
+	}
+
+	return User.ToDomain(), nil
+}
+
+func (r *UserRepository) Delete(id string) error {
+	if err := r.Conn.Where("id = ?", id).Delete(&User{}).Error; err != nil {
+		return err
+	}
+
 	return nil
 }
