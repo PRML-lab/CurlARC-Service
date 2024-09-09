@@ -9,9 +9,9 @@ import (
 
 type TeamUsecase interface {
 	// CRUD
-	CreateTeam(name, userId string) error
+	CreateTeam(name, userId string) (*entity.Team, error)
 	GetAllTeams() ([]*entity.Team, error)
-	UpdateTeam(id, name string) error
+	UpdateTeam(id, name string) (*entity.Team, error)
 	DeleteTeam(id string) error
 
 	// User関連
@@ -34,7 +34,16 @@ func NewTeamUsecase(teamRepo repository.TeamRepository, userRepo repository.User
 }
 
 func (usecase *teamUsecase) CreateTeam(name, userId string) error {
-	team := &entity.Team{Name: name}
+	// Check existence of user
+	_, err := usecase.userRepo.FindById(userId)
+	if err != nil {
+		return err
+	}
+
+	// Create team
+	team := entity.NewTeam(name)
+
+	// Save team
 	createdTeam, err := usecase.teamRepo.Save(team)
 	if err != nil {
 		return err
