@@ -37,9 +37,9 @@ func (userTeam *UserTeam) ToDomain() *entity.UserTeam {
 	)
 }
 
-func (userTeamRepo *UserTeamRepository) Save(userTeam entity.UserTeam) (*entity.UserTeam, error) {
+func (userTeamRepo *UserTeamRepository) Save(userTeam *entity.UserTeam) (*entity.UserTeam, error) {
 	var dbUserTeam UserTeam
-	dbUserTeam.FromDomain(&userTeam)
+	dbUserTeam.FromDomain(userTeam)
 
 	if err := userTeamRepo.SqlHandler.Conn.Create(&dbUserTeam).Error; err != nil {
 		return nil, err
@@ -112,9 +112,9 @@ func (userTeamRepo *UserTeamRepository) FindInvitedTeamsByUserId(userId string) 
 	return teamIds, nil
 }
 
-func (userTeamRepo *UserTeamRepository) UpdateState(userTeam entity.UserTeam) (*entity.UserTeam, error) {
+func (userTeamRepo *UserTeamRepository) UpdateState(userTeam *entity.UserTeam) (*entity.UserTeam, error) {
 	var dbUserTeam UserTeam
-	dbUserTeam.FromDomain(&userTeam)
+	dbUserTeam.FromDomain(userTeam)
 
 	result := userTeamRepo.SqlHandler.Conn.Model(&dbUserTeam).
 		Where("user_id = ? AND team_id = ?", dbUserTeam.UserId, dbUserTeam.TeamId).
