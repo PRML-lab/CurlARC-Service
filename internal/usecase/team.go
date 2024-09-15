@@ -33,33 +33,27 @@ func NewTeamUsecase(teamRepo repository.TeamRepository, userRepo repository.User
 	return &teamUsecase{teamRepo: teamRepo, userRepo: userRepo, userTeamRepo: userTeamRepo}
 }
 
-func (usecase *teamUsecase) CreateTeam(name, userId string) error {
+func (usecase *teamUsecase) CreateTeam(name, userId string) (*entity.Team, error) {
 	// Check existence of user
 	_, err := usecase.userRepo.FindById(userId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Create team
+	// Create entities
 	team := entity.NewTeam(name)
+	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *team.GetId(), "MEMBER")
 
-	// Save team
-	createdTeam, err := usecase.teamRepo.Save(team)
+	// 永続化
+	savedTeam, err := usecase.teamRepo.Save(team)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	// user-team tableに保存
-	_, err = usecase.userRepo.FindById(userId)
+	_, err = usecase.userTeamRepo.Save(userTeam)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	err = usecase.userTeamRepo.Save(userId, createdTeam.Id, "MEMBER")
-	if err != nil {
-		return err
-	}
-	return nil
+	return savedTeam, nil
 }
 
 func (usecase *teamUsecase) GetAllTeams() ([]*entity.Team, error) {
@@ -70,25 +64,19 @@ func (usecase *teamUsecase) GetAllTeams() ([]*entity.Team, error) {
 	return teams, nil
 }
 
-func (usecase *teamUsecase) GetTeam(id string) (*entity.Team, error) {
+func (usecase *teamUsecase) UpdateTeam(id, name string) (*entity.Team, error) {
 	team, err := usecase.teamRepo.FindById(id)
 	if err != nil {
 		return nil, err
 	}
-	return team, nil
-}
 
-func (usecase *teamUsecase) UpdateTeam(id, name string) error {
-	team, err := usecase.teamRepo.FindById(id)
+	team.SetName(name)
+	updatedTeam, err := usecase.teamRepo.Update(team)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	team.Name = name
-	err = usecase.teamRepo.Update(team)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return updatedTeam, nil
 }
 
 func (usecase *teamUsecase) DeleteTeam(id string) error {
@@ -131,25 +119,26 @@ func (usecase *teamUsecase) InviteUsers(teamId, userId string, targetUserEmails 
 		// Check existence of target user
 		targetUser, err := usecase.userRepo.FindByEmail(targetEmail)
 		if err != nil {
-			inviteErrors = append(inviteErrors, fmt.Errorf("target user %s not found: %v", targetUser.Email, err))
+			inviteErrors = append(inviteErrors, fmt.Errorf("target user %s not found: %v", targetEmail, err))
 			continue
 		}
 
 		// Check if the target user is already a member of the team
-		isMember, err = usecase.userTeamRepo.IsMember(targetUser.Id, teamId)
+		isMember, err = usecase.userTeamRepo.IsMember(targetUser.GetId().Value(), teamId)
 		if err != nil {
-			inviteErrors = append(inviteErrors, fmt.Errorf("error checking membership for user %s: %v", targetUser.Email, err))
+			inviteErrors = append(inviteErrors, fmt.Errorf("error checking membership for user %s: %v", targetEmail, err))
 			continue
 		}
 		if isMember {
-			inviteErrors = append(inviteErrors, fmt.Errorf("target user %s is already a member of the team", targetUser.Email))
+			inviteErrors = append(inviteErrors, fmt.Errorf("target user %s is already a member of the team", targetEmail))
 			continue
 		}
 
 		// Add user to team with "INVITED" state
-		err = usecase.userTeamRepo.Save(targetUser.Id, teamId, "INVITED")
+		userTeam := entity.NewUserTeam(*entity.NewUserId(targetUser.GetId().Value()), *entity.NewTeamId(teamId), "INVITED")
+		_, err = usecase.userTeamRepo.Save(userTeam)
 		if err != nil {
-			inviteErrors = append(inviteErrors, fmt.Errorf("error inviting user %s: %v", targetUser.Email, err))
+			inviteErrors = append(inviteErrors, fmt.Errorf("error inviting user %s: %v", targetEmail, err))
 			continue
 		}
 
@@ -175,8 +164,10 @@ func (usecase *teamUsecase) AcceptInvitation(teamId, userId string) error {
 		return err
 	}
 
+	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *entity.NewTeamId(teamId), "MEMBER")
+
 	// Update state of user-team
-	err = usecase.userTeamRepo.UpdateState(userId, teamId)
+	_, err = usecase.userTeamRepo.UpdateState(userTeam)
 	if err != nil {
 		return err
 	}

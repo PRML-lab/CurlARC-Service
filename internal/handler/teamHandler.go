@@ -46,7 +46,7 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 			})
 		}
 
-		err := h.teamUsecase.CreateTeam(req.Name, userId)
+		createdTeam, err := h.teamUsecase.CreateTeam(req.Name, userId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -59,7 +59,11 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 
 		return c.JSON(http.StatusNoContent, response.SuccessResponse{
 			Status: "success",
-			Data:   nil,
+			Data: struct {
+				Team *entity.Team `json:"team"`
+			}{
+				Team: createdTeam,
+			},
 		})
 	}
 }
@@ -156,8 +160,8 @@ func (h *TeamHandler) GetAllTeams() echo.HandlerFunc {
 		responseTeams := make([]response.Team, 0, len(teams))
 		for _, team := range teams {
 			responseTeams = append(responseTeams, response.Team{
-				Id:   team.Id,
-				Name: team.Name,
+				Id:   team.GetId().Value(),
+				Name: team.GetName(),
 			})
 		}
 
@@ -194,7 +198,7 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 			})
 		}
 
-		err := h.teamUsecase.UpdateTeam(teamId, req.Name)
+		updatedTeam, err := h.teamUsecase.UpdateTeam(teamId, req.Name)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -207,7 +211,11 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   nil,
+			Data: struct {
+				Team *entity.Team `json:"team"`
+			}{
+				Team: updatedTeam,
+			},
 		})
 	}
 }

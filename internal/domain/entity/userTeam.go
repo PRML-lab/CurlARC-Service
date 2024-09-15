@@ -34,3 +34,9 @@ func (u *UserTeam) GetTeamId() *TeamId {
 func (u *UserTeam) GetState() UserTeamState {
 	return u.state
 }
+
+// setter
+
+func (u *UserTeam) SetState(state UserTeamState) {
+	u.state = state
+}
