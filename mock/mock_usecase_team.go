@@ -5,7 +5,7 @@
 package mock
 
 import (
-	model "CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -49,11 +49,12 @@ func (mr *MockTeamUsecaseMockRecorder) AcceptInvitation(teamId, userId interface
 }
 
 // CreateTeam mocks base method.
-func (m *MockTeamUsecase) CreateTeam(name, userId string) error {
+func (m *MockTeamUsecase) CreateTeam(name, userId string) (*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTeam", name, userId)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.Team)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateTeam indicates an expected call of CreateTeam.
@@ -77,10 +78,10 @@ func (mr *MockTeamUsecaseMockRecorder) DeleteTeam(id interface{}) *gomock.Call {
 }
 
 // GetAllTeams mocks base method.
-func (m *MockTeamUsecase) GetAllTeams() ([]*model.Team, error) {
+func (m *MockTeamUsecase) GetAllTeams() ([]*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllTeams")
-	ret0, _ := ret[0].([]*model.Team)
+	ret0, _ := ret[0].([]*entity.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -92,10 +93,10 @@ func (mr *MockTeamUsecaseMockRecorder) GetAllTeams() *gomock.Call {
 }
 
 // GetInvitedTeams mocks base method.
-func (m *MockTeamUsecase) GetInvitedTeams(userId string) ([]*model.Team, error) {
+func (m *MockTeamUsecase) GetInvitedTeams(userId string) ([]*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetInvitedTeams", userId)
-	ret0, _ := ret[0].([]*model.Team)
+	ret0, _ := ret[0].([]*entity.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -107,10 +108,10 @@ func (mr *MockTeamUsecaseMockRecorder) GetInvitedTeams(userId interface{}) *gomo
 }
 
 // GetMembersByTeamId mocks base method.
-func (m *MockTeamUsecase) GetMembersByTeamId(teamId string) ([]*model.User, error) {
+func (m *MockTeamUsecase) GetMembersByTeamId(teamId string) ([]*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMembersByTeamId", teamId)
-	ret0, _ := ret[0].([]*model.User)
+	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -122,10 +123,10 @@ func (mr *MockTeamUsecaseMockRecorder) GetMembersByTeamId(teamId interface{}) *g
 }
 
 // GetTeamsByUserId mocks base method.
-func (m *MockTeamUsecase) GetTeamsByUserId(userId string) ([]*model.Team, error) {
+func (m *MockTeamUsecase) GetTeamsByUserId(userId string) ([]*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamsByUserId", userId)
-	ret0, _ := ret[0].([]*model.Team)
+	ret0, _ := ret[0].([]*entity.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -165,11 +166,12 @@ func (mr *MockTeamUsecaseMockRecorder) RemoveMember(teamId, userId interface{}) 
 }
 
 // UpdateTeam mocks base method.
-func (m *MockTeamUsecase) UpdateTeam(id, name string) error {
+func (m *MockTeamUsecase) UpdateTeam(id, name string) (*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTeam", id, name)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.Team)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateTeam indicates an expected call of UpdateTeam.

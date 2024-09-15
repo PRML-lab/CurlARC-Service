@@ -5,7 +5,7 @@
 package mock
 
 import (
-	model "CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -49,10 +49,10 @@ func (mr *MockUserRepositoryMockRecorder) Delete(id interface{}) *gomock.Call {
 }
 
 // FindAll mocks base method.
-func (m *MockUserRepository) FindAll() ([]*model.User, error) {
+func (m *MockUserRepository) FindAll() ([]*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAll")
-	ret0, _ := ret[0].([]*model.User)
+	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -64,10 +64,10 @@ func (mr *MockUserRepositoryMockRecorder) FindAll() *gomock.Call {
 }
 
 // FindByEmail mocks base method.
-func (m *MockUserRepository) FindByEmail(email string) (*model.User, error) {
+func (m *MockUserRepository) FindByEmail(email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByEmail", email)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -79,10 +79,10 @@ func (mr *MockUserRepositoryMockRecorder) FindByEmail(email interface{}) *gomock
 }
 
 // FindById mocks base method.
-func (m *MockUserRepository) FindById(id string) (*model.User, error) {
+func (m *MockUserRepository) FindById(id string) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindById", id)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -94,10 +94,10 @@ func (mr *MockUserRepositoryMockRecorder) FindById(id interface{}) *gomock.Call 
 }
 
 // Save mocks base method.
-func (m *MockUserRepository) Save(user *model.User) (*model.User, error) {
+func (m *MockUserRepository) Save(user *entity.User) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", user)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -109,11 +109,12 @@ func (mr *MockUserRepositoryMockRecorder) Save(user interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockUserRepository) Update(user *model.User) error {
+func (m *MockUserRepository) Update(user *entity.User) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", user)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.

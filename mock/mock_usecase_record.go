@@ -5,13 +5,12 @@
 package mock
 
 import (
-	model "CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity"
 	response "CurlARC/internal/handler/response"
 	reflect "reflect"
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	datatypes "gorm.io/datatypes"
 )
 
 // MockRecordUsecase is a mock of RecordUsecase interface.
@@ -38,10 +37,10 @@ func (m *MockRecordUsecase) EXPECT() *MockRecordUsecaseMockRecorder {
 }
 
 // AppendEndData mocks base method.
-func (m *MockRecordUsecase) AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error) {
+func (m *MockRecordUsecase) AppendEndData(recordId, userId string, endsData []entity.DataPerEnd) (*entity.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AppendEndData", recordId, userId, endsData)
-	ret0, _ := ret[0].(*model.Record)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -53,10 +52,10 @@ func (mr *MockRecordUsecaseMockRecorder) AppendEndData(recordId, userId, endsDat
 }
 
 // CreateRecord mocks base method.
-func (m *MockRecordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
+func (m *MockRecordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string, result entity.Result, date time.Time) (*entity.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRecord", userId, teamId, enemyTeamName, place, result, date)
-	ret0, _ := ret[0].(*model.Record)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -82,10 +81,10 @@ func (mr *MockRecordUsecaseMockRecorder) DeleteRecord(id interface{}) *gomock.Ca
 }
 
 // GetRecordDetailsByRecordId mocks base method.
-func (m *MockRecordUsecase) GetRecordDetailsByRecordId(recordId string) (*model.Record, error) {
+func (m *MockRecordUsecase) GetRecordDetailsByRecordId(recordId string) (*entity.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecordDetailsByRecordId", recordId)
-	ret0, _ := ret[0].(*model.Record)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -112,10 +111,10 @@ func (mr *MockRecordUsecaseMockRecorder) GetRecordIndicesByTeamId(teamId interfa
 }
 
 // GetRecordsByTeamId mocks base method.
-func (m *MockRecordUsecase) GetRecordsByTeamId(teamId string) (*[]model.Record, error) {
+func (m *MockRecordUsecase) GetRecordsByTeamId(teamId string) (*[]entity.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecordsByTeamId", teamId)
-	ret0, _ := ret[0].(*[]model.Record)
+	ret0, _ := ret[0].(*[]entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -127,10 +126,10 @@ func (mr *MockRecordUsecaseMockRecorder) GetRecordsByTeamId(teamId interface{}) 
 }
 
 // SetVisibility mocks base method.
-func (m *MockRecordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*model.Record, error) {
+func (m *MockRecordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*entity.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetVisibility", recordId, userId, isPublic)
-	ret0, _ := ret[0].(*model.Record)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -142,16 +141,16 @@ func (mr *MockRecordUsecaseMockRecorder) SetVisibility(recordId, userId, isPubli
 }
 
 // UpdateRecord mocks base method.
-func (m *MockRecordUsecase) UpdateRecord(recordId, userId string, updates model.RecordUpdate) (*model.Record, error) {
+func (m *MockRecordUsecase) UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) (*entity.Record, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateRecord", recordId, userId, updates)
-	ret0, _ := ret[0].(*model.Record)
+	ret := m.ctrl.Call(m, "UpdateRecord", recordId, userId, enemyTeamName, place, endsData, date)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateRecord indicates an expected call of UpdateRecord.
-func (mr *MockRecordUsecaseMockRecorder) UpdateRecord(recordId, userId, updates interface{}) *gomock.Call {
+func (mr *MockRecordUsecaseMockRecorder) UpdateRecord(recordId, userId, enemyTeamName, place, endsData, date interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRecord", reflect.TypeOf((*MockRecordUsecase)(nil).UpdateRecord), recordId, userId, updates)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRecord", reflect.TypeOf((*MockRecordUsecase)(nil).UpdateRecord), recordId, userId, enemyTeamName, place, endsData, date)
 }

@@ -5,10 +5,9 @@
 package mock
 
 import (
-	model "CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity"
 	response "CurlARC/internal/handler/response"
 	reflect "reflect"
-	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -51,10 +50,10 @@ func (mr *MockRecordRepositoryMockRecorder) Delete(recordId interface{}) *gomock
 }
 
 // FindByRecordId mocks base method.
-func (m *MockRecordRepository) FindByRecordId(recordId string) (*model.Record, error) {
+func (m *MockRecordRepository) FindByRecordId(recordId string) (*entity.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByRecordId", recordId)
-	ret0, _ := ret[0].(*model.Record)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,10 +65,10 @@ func (mr *MockRecordRepositoryMockRecorder) FindByRecordId(recordId interface{})
 }
 
 // FindByTeamId mocks base method.
-func (m *MockRecordRepository) FindByTeamId(teamId string) (*[]model.Record, error) {
+func (m *MockRecordRepository) FindByTeamId(teamId string) (*[]entity.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByTeamId", teamId)
-	ret0, _ := ret[0].(*[]model.Record)
+	ret0, _ := ret[0].(*[]entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -96,31 +95,31 @@ func (mr *MockRecordRepositoryMockRecorder) FindIndicesByTeamId(teamId interface
 }
 
 // Save mocks base method.
-func (m *MockRecordRepository) Save(teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
+func (m *MockRecordRepository) Save(arg0 entity.Record) (*entity.Record, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", teamId, enemyTeamName, place, result, date)
-	ret0, _ := ret[0].(*model.Record)
+	ret := m.ctrl.Call(m, "Save", arg0)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockRecordRepositoryMockRecorder) Save(teamId, enemyTeamName, place, result, date interface{}) *gomock.Call {
+func (mr *MockRecordRepositoryMockRecorder) Save(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRecordRepository)(nil).Save), teamId, enemyTeamName, place, result, date)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRecordRepository)(nil).Save), arg0)
 }
 
 // Update mocks base method.
-func (m *MockRecordRepository) Update(recordId string, updates model.RecordUpdate) (*model.Record, error) {
+func (m *MockRecordRepository) Update(record entity.Record) (*entity.Record, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", recordId, updates)
-	ret0, _ := ret[0].(*model.Record)
+	ret := m.ctrl.Call(m, "Update", record)
+	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockRecordRepositoryMockRecorder) Update(recordId, updates interface{}) *gomock.Call {
+func (mr *MockRecordRepositoryMockRecorder) Update(record interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRecordRepository)(nil).Update), recordId, updates)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRecordRepository)(nil).Update), record)
 }

@@ -5,7 +5,7 @@
 package mock
 
 import (
-	model "CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -49,10 +49,10 @@ func (mr *MockTeamRepositoryMockRecorder) Delete(id interface{}) *gomock.Call {
 }
 
 // FindAll mocks base method.
-func (m *MockTeamRepository) FindAll() ([]*model.Team, error) {
+func (m *MockTeamRepository) FindAll() ([]*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAll")
-	ret0, _ := ret[0].([]*model.Team)
+	ret0, _ := ret[0].([]*entity.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -64,10 +64,10 @@ func (mr *MockTeamRepositoryMockRecorder) FindAll() *gomock.Call {
 }
 
 // FindById mocks base method.
-func (m *MockTeamRepository) FindById(id string) (*model.Team, error) {
+func (m *MockTeamRepository) FindById(id string) (*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindById", id)
-	ret0, _ := ret[0].(*model.Team)
+	ret0, _ := ret[0].(*entity.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -79,10 +79,10 @@ func (mr *MockTeamRepositoryMockRecorder) FindById(id interface{}) *gomock.Call 
 }
 
 // Save mocks base method.
-func (m *MockTeamRepository) Save(team *model.Team) (*model.Team, error) {
+func (m *MockTeamRepository) Save(team *entity.Team) (*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", team)
-	ret0, _ := ret[0].(*model.Team)
+	ret0, _ := ret[0].(*entity.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -94,11 +94,12 @@ func (mr *MockTeamRepositoryMockRecorder) Save(team interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockTeamRepository) Update(team *model.Team) error {
+func (m *MockTeamRepository) Update(team *entity.Team) (*entity.Team, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", team)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.Team)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
