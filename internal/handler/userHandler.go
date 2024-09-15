@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
@@ -46,25 +45,8 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 			})
 		}
 
-		err := h.userUsecase.SignUp(c.Request().Context(), req.IdToken, req.Name, req.Email)
+		signUpedUser, err := h.userUsecase.SignUp(c.Request().Context(), req.IdToken, req.Name, req.Email)
 		if err != nil {
-			if err == repository.ErrUnauthorized {
-				return c.JSON(http.StatusUnauthorized, response.ErrorResponse{
-					Status: "error",
-					Error: response.ErrorDetail{
-						Code:    http.StatusUnauthorized,
-						Message: "invalid id token",
-					},
-				})
-			} else if err == repository.ErrEmailExists {
-				return c.JSON(http.StatusConflict, response.ErrorResponse{
-					Status: "error",
-					Error: response.ErrorDetail{
-						Code:    http.StatusConflict,
-						Message: "email already exists",
-					},
-				})
-			}
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
 				Error: response.ErrorDetail{
@@ -76,7 +58,11 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 
 		return c.JSON(http.StatusCreated, response.SuccessResponse{
 			Status: "success",
-			Data:   nil,
+			Data: response.GetUserResponse{
+				Id:    signUpedUser.GetId().Value(),
+				Name:  signUpedUser.GetName(),
+				Email: signUpedUser.GetEmail(),
+			},
 		})
 	}
 }
@@ -106,17 +92,8 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 			})
 		}
 
-		user, cookie, err := h.userUsecase.AuthUser(c.Request().Context(), req.IdToken)
+		user, cookie, err := h.userUsecase.SignIn(c.Request().Context(), req.IdToken)
 		if err != nil {
-			if err == repository.ErrUserNotFound {
-				return c.JSON(http.StatusNotFound, response.ErrorResponse{
-					Status: "error",
-					Error: response.ErrorDetail{
-						Code:    http.StatusNotFound,
-						Message: "user not found",
-					},
-				})
-			}
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
 				Error: response.ErrorDetail{
@@ -131,7 +108,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:  user,
+			Data:   user,
 		})
 	}
 }
@@ -188,9 +165,9 @@ func (h *UserHandler) GetUser() echo.HandlerFunc {
 		}
 
 		res := response.GetUserResponse{
-			Id:    user.Id,
-			Name:  user.Name,
-			Email: user.Email,
+			Id:    user.GetId().Value(),
+			Name:  user.GetName(),
+			Email: user.GetEmail(),
 		}
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
@@ -225,7 +202,7 @@ func (h *UserHandler) UpdateUser() echo.HandlerFunc {
 		}
 		id := c.Get("uid").(string)
 
-		if err := h.userUsecase.UpdateUser(c.Request().Context(), id, req.Name, req.Email); err != nil {
+		if _, err := h.userUsecase.UpdateUser(c.Request().Context(), id, req.Name, req.Email); err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
 				Error: response.ErrorDetail{
