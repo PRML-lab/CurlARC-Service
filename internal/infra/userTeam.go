@@ -116,8 +116,16 @@ func (userTeamRepo *UserTeamRepository) UpdateState(userTeam entity.UserTeam) (*
 	var dbUserTeam UserTeam
 	dbUserTeam.FromDomain(&userTeam)
 
-	if err := userTeamRepo.SqlHandler.Conn.Save(&dbUserTeam).Error; err != nil {
-		return nil, err
+	result := userTeamRepo.SqlHandler.Conn.Model(&dbUserTeam).
+		Where("user_id = ? AND team_id = ?", dbUserTeam.UserId, dbUserTeam.TeamId).
+		Update("state", dbUserTeam.State)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, errors.New("user team not found")
 	}
 
 	return dbUserTeam.ToDomain(), nil
