@@ -5,7 +5,7 @@
 package mock
 
 import (
-	model "CurlARC/internal/domain/model"
+	entity "CurlARC/internal/domain/entity"
 	context "context"
 	http "net/http"
 	reflect "reflect"
@@ -36,22 +36,6 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 	return m.recorder
 }
 
-// AuthUser mocks base method.
-func (m *MockUserUsecase) AuthUser(ctx context.Context, id_token string) (*model.User, *http.Cookie, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AuthUser", ctx, id_token)
-	ret0, _ := ret[0].(*model.User)
-	ret1, _ := ret[1].(*http.Cookie)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// AuthUser indicates an expected call of AuthUser.
-func (mr *MockUserUsecaseMockRecorder) AuthUser(ctx, id_token interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthUser", reflect.TypeOf((*MockUserUsecase)(nil).AuthUser), ctx, id_token)
-}
-
 // DeleteUser mocks base method.
 func (m *MockUserUsecase) DeleteUser(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
@@ -67,10 +51,10 @@ func (mr *MockUserUsecaseMockRecorder) DeleteUser(ctx, id interface{}) *gomock.C
 }
 
 // GetAllUsers mocks base method.
-func (m *MockUserUsecase) GetAllUsers(ctx context.Context) ([]*model.User, error) {
+func (m *MockUserUsecase) GetAllUsers(ctx context.Context) ([]*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllUsers", ctx)
-	ret0, _ := ret[0].([]*model.User)
+	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -82,10 +66,10 @@ func (mr *MockUserUsecaseMockRecorder) GetAllUsers(ctx interface{}) *gomock.Call
 }
 
 // GetUser mocks base method.
-func (m *MockUserUsecase) GetUser(ctx context.Context, id string) (*model.User, error) {
+func (m *MockUserUsecase) GetUser(ctx context.Context, id string) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUser", ctx, id)
-	ret0, _ := ret[0].(*model.User)
+	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -96,12 +80,29 @@ func (mr *MockUserUsecaseMockRecorder) GetUser(ctx, id interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserUsecase)(nil).GetUser), ctx, id)
 }
 
+// SignIn mocks base method.
+func (m *MockUserUsecase) SignIn(ctx context.Context, idToken string) (*entity.User, *http.Cookie, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignIn", ctx, idToken)
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(*http.Cookie)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SignIn indicates an expected call of SignIn.
+func (mr *MockUserUsecaseMockRecorder) SignIn(ctx, idToken interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignIn", reflect.TypeOf((*MockUserUsecase)(nil).SignIn), ctx, idToken)
+}
+
 // SignUp mocks base method.
-func (m *MockUserUsecase) SignUp(ctx context.Context, idToken, name, email string) error {
+func (m *MockUserUsecase) SignUp(ctx context.Context, idToken, name, email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignUp", ctx, idToken, name, email)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SignUp indicates an expected call of SignUp.
@@ -111,11 +112,12 @@ func (mr *MockUserUsecaseMockRecorder) SignUp(ctx, idToken, name, email interfac
 }
 
 // UpdateUser mocks base method.
-func (m *MockUserUsecase) UpdateUser(ctx context.Context, id, name, email string) error {
+func (m *MockUserUsecase) UpdateUser(ctx context.Context, id, name, email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUser", ctx, id, name, email)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateUser indicates an expected call of UpdateUser.
