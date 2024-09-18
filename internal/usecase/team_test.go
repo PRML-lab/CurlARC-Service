@@ -259,13 +259,14 @@ func TestAcceptInvitation(t *testing.T) {
 
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
-	t.Run("正常系: 招待を受け入れる", func(t *testing.T) {
-		team := &entity.Team{Id: "team-123", Name: "Team A"}
-		user := &entity.User{Id: "user-123"}
+	team := entity.NewTeam("Team A")
+	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
+	userTeam := entity.NewUserTeam(*user.GetId(), *team.GetId(), entity.Invited)
 
+	t.Run("正常系: 招待を受け入れる", func(t *testing.T) {
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(user, nil)
-		mockUserTeamRepo.EXPECT().UpdateState("user-123", "team-123").Return(nil)
+		mockUserTeamRepo.EXPECT().UpdateState(userTeam).Return(nil)
 
 		err := teamUsecase.AcceptInvitation("team-123", "user-123")
 		assert.NoError(t, err)
@@ -280,8 +281,6 @@ func TestAcceptInvitation(t *testing.T) {
 	})
 
 	t.Run("異常系: ユーザーが見つからない", func(t *testing.T) {
-		team := &entity.Team{Id: "team-123", Name: "Team A"}
-
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(nil, errors.New("user not found"))
 
@@ -301,10 +300,10 @@ func TestRemoveMember(t *testing.T) {
 
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
-	t.Run("正常系: メンバーが正常に削除される", func(t *testing.T) {
-		team := &entity.Team{Id: "team-123", Name: "Team A"}
-		user := &entity.User{Id: "user-123"}
+	team := entity.NewTeam("Team A")
+	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
 
+	t.Run("正常系: メンバーが正常に削除される", func(t *testing.T) {
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(user, nil)
 		mockUserTeamRepo.EXPECT().Delete("user-123", "team-123").Return(nil)
@@ -322,8 +321,6 @@ func TestRemoveMember(t *testing.T) {
 	})
 
 	t.Run("異常系: ユーザーが見つからない", func(t *testing.T) {
-		team := &entity.Team{Id: "team-123", Name: "Team A"}
-
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(nil, errors.New("user not found"))
 
@@ -343,12 +340,13 @@ func TestGetTeamsByUserId(t *testing.T) {
 
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
+	teams := []*entity.Team{
+		entity.NewTeam("Team A"),
+		entity.NewTeam("Team B"),
+	}
+	userId := "user-123"
+
 	t.Run("正常系: ユーザーが所属するチームが正常に取得される", func(t *testing.T) {
-		userId := "user-123"
-		teams := []*entity.Team{
-			{Id: "team-123", Name: "Team A"},
-			{Id: "team-456", Name: "Team B"},
-		}
 
 		mockUserTeamRepo.EXPECT().FindTeamsByUserId(userId).Return([]string{"team-123", "team-456"}, nil)
 		mockTeamRepo.EXPECT().FindById("team-123").Return(teams[0], nil)
@@ -381,12 +379,13 @@ func TestGetInvitedTeams(t *testing.T) {
 
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
+	teams := []*entity.Team{
+		entity.NewTeam("Team A"),
+		entity.NewTeam("Team B"),
+	}
+	userId := "user-123"
+
 	t.Run("正常系: ユーザーが招待されているチームが正常に取得される", func(t *testing.T) {
-		userId := "user-123"
-		teams := []*entity.Team{
-			{Id: "team-123", Name: "Team A"},
-			{Id: "team-456", Name: "Team B"},
-		}
 
 		mockUserTeamRepo.EXPECT().FindInvitedTeamsByUserId(userId).Return([]string{"team-123", "team-456"}, nil)
 		mockTeamRepo.EXPECT().FindById("team-123").Return(teams[0], nil)
@@ -418,14 +417,14 @@ func TestGetMembersByTeamId(t *testing.T) {
 	mockUserTeamRepo := mock.NewMockUserTeamRepository(ctrl)
 
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
+	teamId := "team-123"
+	userIds := []string{"user-123", "user-456"}
+	users := []*entity.User{
+		entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com"),
+		entity.NewUser(*entity.NewUserId("user-456"), "User B", "user-456@gmail.com"),
+	}
 
 	t.Run("正常系: チームのメンバーが正常に取得される", func(t *testing.T) {
-		teamId := "team-123"
-		userIds := []string{"user-123", "user-456"}
-		users := []*entity.User{
-			{Id: "user-123", Name: "User A"},
-			{Id: "user-456", Name: "User B"},
-		}
 
 		mockUserTeamRepo.EXPECT().FindMembersByTeamId(teamId).Return(userIds, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(users[0], nil)
