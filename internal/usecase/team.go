@@ -42,7 +42,7 @@ func (usecase *teamUsecase) CreateTeam(name, userId string) (*entity.Team, error
 
 	// Create entities
 	team := entity.NewTeam(name)
-	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *team.GetId(), "MEMBER")
+	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *team.GetId(), entity.Member)
 
 	// 永続化
 	savedTeam, err := usecase.teamRepo.Save(team)
@@ -135,7 +135,7 @@ func (usecase *teamUsecase) InviteUsers(teamId, userId string, targetUserEmails 
 		}
 
 		// Add user to team with "INVITED" state
-		userTeam := entity.NewUserTeam(*entity.NewUserId(targetUser.GetId().Value()), *entity.NewTeamId(teamId), "INVITED")
+		userTeam := entity.NewUserTeam(*entity.NewUserId(targetUser.GetId().Value()), *entity.NewTeamId(teamId), entity.Invited)
 		_, err = usecase.userTeamRepo.Save(userTeam)
 		if err != nil {
 			inviteErrors = append(inviteErrors, fmt.Errorf("error inviting user %s: %v", targetEmail, err))

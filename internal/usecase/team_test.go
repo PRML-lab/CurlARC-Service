@@ -26,15 +26,16 @@ func TestCreateTeam(t *testing.T) {
 		mockUserTeamRepo,
 	)
 
+	team := entity.NewTeam("Team A")
+	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
+	userId := user.GetId().Value()
+
 	t.Run("正常系: チームが正常に作成される", func(t *testing.T) {
-		team := entity.NewTeam("Team A")
-		userId := "user-123"
-		user := entity.NewUser(*entity.NewUserId(userId), "User A", "A@gmail.com")
 		userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *team.GetId(), entity.Member)
 
-		mockTeamRepo.EXPECT().Save(team).Return(team, nil)
+		mockTeamRepo.EXPECT().Save(gomock.Any()).Return(team, nil)
 		mockUserRepo.EXPECT().FindById(userId).Return(user, nil)
-		mockUserTeamRepo.EXPECT().Save(userTeam).Return(nil)
+		mockUserTeamRepo.EXPECT().Save(gomock.Any()).Return(userTeam, nil)
 
 		createdTeam, err := teamUsecase.CreateTeam("Team A", userId)
 		assert.NoError(t, err)
@@ -42,10 +43,10 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("異常系: dbへの保存に失敗する", func(t *testing.T) {
-		team := entity.NewTeam("Team B")
 		userId := "user-123"
 
-		mockTeamRepo.EXPECT().Save(team).Return(nil, errors.New("failed to save team"))
+		mockUserRepo.EXPECT().FindById(userId).Return(user, nil)
+		mockTeamRepo.EXPECT().Save(gomock.Any()).Return(nil, errors.New("failed to save team"))
 
 		createdTeam, err := teamUsecase.CreateTeam("Team B", userId)
 		assert.Error(t, err)
@@ -54,13 +55,9 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("異常系: 作成者のユーザーが見つからない", func(t *testing.T) {
-		team := entity.NewTeam("Team C")
-		userId := "user-123"
-
-		mockTeamRepo.EXPECT().Save(team).Return(team, nil)
 		mockUserRepo.EXPECT().FindById(userId).Return(nil, errors.New("user not found"))
 
-		_, err := teamUsecase.CreateTeam("Team C", userId)
+		_, err := teamUsecase.CreateTeam(team.GetName(), userId)
 		assert.Error(t, err)
 		assert.Equal(t, "user not found", err.Error())
 	})
@@ -115,7 +112,7 @@ func TestUpdateTeam(t *testing.T) {
 	t.Run("正常系: チームが正常に更新される", func(t *testing.T) {
 
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
-		mockTeamRepo.EXPECT().Update(team).Return(nil)
+		mockTeamRepo.EXPECT().Update(team).Return(ToUpdateTeam, nil)
 
 		updatedTeam, err := teamUsecase.UpdateTeam("team-123", "Team A+")
 		assert.NoError(t, err)
@@ -132,7 +129,7 @@ func TestUpdateTeam(t *testing.T) {
 
 	t.Run("異常系: チームの更新に失敗する", func(t *testing.T) {
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
-		mockTeamRepo.EXPECT().Update(team).Return(errors.New("failed to update team"))
+		mockTeamRepo.EXPECT().Update(team).Return(nil, errors.New("failed to update team"))
 
 		_, err := teamUsecase.UpdateTeam("team-123", "Team A")
 		assert.Error(t, err)
@@ -211,11 +208,11 @@ func TestInviteUsers(t *testing.T) {
 		// 1人目
 		mockUserRepo.EXPECT().FindByEmail("newcommer1@gmail.com").Return(user1, nil)
 		mockUserTeamRepo.EXPECT().IsMember("newcommer1", "team-123").Return(false, nil)
-		mockUserTeamRepo.EXPECT().Save(userTeam1).Return(nil)
+		mockUserTeamRepo.EXPECT().Save(gomock.Any()).Return(userTeam1, nil)
 		// 2人目
 		mockUserRepo.EXPECT().FindByEmail("newcommer2@gmail.com").Return(user2, nil)
 		mockUserTeamRepo.EXPECT().IsMember("newcommer2", "team-123").Return(false, nil)
-		mockUserTeamRepo.EXPECT().Save(userTeam2).Return(nil)
+		mockUserTeamRepo.EXPECT().Save(gomock.Any()).Return(userTeam2, nil)
 
 		err := teamUsecase.InviteUsers("team-123", "user-123", targetUserEmails)
 		assert.NoError(t, err)
@@ -261,12 +258,12 @@ func TestAcceptInvitation(t *testing.T) {
 
 	team := entity.NewTeam("Team A")
 	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
-	userTeam := entity.NewUserTeam(*user.GetId(), *team.GetId(), entity.Invited)
+	acceptedUserTeam := entity.NewUserTeam(*user.GetId(), *team.GetId(), entity.Member)
 
 	t.Run("正常系: 招待を受け入れる", func(t *testing.T) {
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
 		mockUserRepo.EXPECT().FindById("user-123").Return(user, nil)
-		mockUserTeamRepo.EXPECT().UpdateState(userTeam).Return(nil)
+		mockUserTeamRepo.EXPECT().UpdateState(gomock.Any()).Return(acceptedUserTeam, nil)
 
 		err := teamUsecase.AcceptInvitation("team-123", "user-123")
 		assert.NoError(t, err)
