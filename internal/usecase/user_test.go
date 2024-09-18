@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSignUp(t *testing.T) {
@@ -29,6 +30,7 @@ func TestSignUp(t *testing.T) {
 	idToken := "valid_id_token"
 	name := "John Doe"
 	email := "john.doe@example.com"
+	user := entity.NewUser(*entity.NewUserId("firebase_uid"), name, email)
 
 	t.Run("正常系: ユーザーが正常にサインアップされる", func(t *testing.T) {
 		token := &firebaseAuth.Token{
@@ -36,21 +38,19 @@ func TestSignUp(t *testing.T) {
 		}
 
 		mockAuth.EXPECT().VerifyIDToken(ctx, idToken).Return(token, nil)
-		mockRepo.EXPECT().Save(gomock.Any()).Return(&entity.User{Id: "firebase_uid", Name: name, Email: email}, nil)
+		mockRepo.EXPECT().Save(gomock.Any()).Return(user, nil)
 
-		err := usecase.SignUp(ctx, idToken, name, email)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
+		_, err := usecase.SignUp(ctx, idToken, name, email)
+		assert.NoError(t, err)
 	})
 
 	t.Run("異常系: IDトークンが無効である", func(t *testing.T) {
 		mockAuth.EXPECT().VerifyIDToken(ctx, idToken).Return(nil, errors.New("invalid token"))
 
-		err := usecase.SignUp(ctx, idToken, name, email)
-		if !errors.Is(err, repository.ErrUnauthorized) {
-			t.Errorf("expected error: %v, got: %v", repository.ErrUnauthorized, err)
-		}
+		signUpedUser, err := usecase.SignUp(ctx, idToken, name, email)
+		assert.Error(t, err)
+		assert.Nil(t, signUpedUser)
+		assert.Equal(t, errors.New("invalid token"), err)
 	})
 
 	t.Run("異常系: メールアドレスが既に存在する", func(t *testing.T) {
@@ -62,10 +62,9 @@ func TestSignUp(t *testing.T) {
 		mockRepo.EXPECT().Save(gomock.Any()).Return(nil, gorm.ErrDuplicatedKey)
 		mockAuth.EXPECT().DeleteUser(ctx, token.UID).Return(nil)
 
-		err := usecase.SignUp(ctx, idToken, name, email)
-		if !errors.Is(err, repository.ErrEmailExists) {
-			t.Errorf("expected error: %v, got: %v", repository.ErrEmailExists, err)
-		}
+		signUpedUser, err := usecase.SignUp(ctx, idToken, name, email)
+		assert.Error(t, err)
+		assert.Nil(t, signUpedUser)
 	})
 
 	t.Run("異常系: データベースへの保存に失敗する", func(t *testing.T) {
@@ -77,10 +76,9 @@ func TestSignUp(t *testing.T) {
 		mockRepo.EXPECT().Save(gomock.Any()).Return(nil, errors.New("db error"))
 		mockAuth.EXPECT().DeleteUser(ctx, token.UID).Return(nil)
 
-		err := usecase.SignUp(ctx, idToken, name, email)
-		if err == nil || errors.Is(err, repository.ErrEmailExists) {
-			t.Errorf("unexpected error: %v", err)
-		}
+		signUpedUser, err := usecase.SignUp(ctx, idToken, name, email)
+		assert.Error(t, err)
+		assert.Nil(t, signUpedUser)
 	})
 }
 
