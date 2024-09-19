@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"CurlARC/internal/domain/entity"
-	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/usecase"
 	"CurlARC/mock"
 
@@ -93,31 +92,27 @@ func TestAuthUser(t *testing.T) {
 
 	ctx := context.Background()
 	idToken := "valid_id_token"
+	user := entity.NewUser(*entity.NewUserId("firebase_uid"), "John Doe", "JohnDoe@gmail.com")
+	token := &firebaseAuth.Token{
+		UID: "firebase_uid",
+	}
 
 	t.Run("正常系: ユーザーが正常に認証される", func(t *testing.T) {
-		token := &firebaseAuth.Token{
-			UID: "firebase_uid",
-		}
 
 		mockAuth.EXPECT().VerifyIDToken(ctx, idToken).Return(token, nil)
-		mockRepo.EXPECT().FindById(token.UID).Return(&entity.User{Id: "firebase_uid"}, nil)
+		mockRepo.EXPECT().FindById(token.UID).Return(user, nil)
 
-		user, _, err := usecase.AuthUser(ctx, idToken)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-		if user.Id != "firebase_uid" {
-			t.Errorf("expected user id: %s, got: %s", "firebase_uid", user.Id)
-		}
+		authorizedUser, _, err := usecase.SignIn(ctx, idToken)
+		assert.NoError(t, err)
+		assert.NotNil(t, user)
+		assert.Equal(t, user.GetId(), authorizedUser.GetId())
 	})
 
 	t.Run("異常系: IDトークンが無効である", func(t *testing.T) {
 		mockAuth.EXPECT().VerifyIDToken(ctx, idToken).Return(nil, errors.New("invalid token"))
 
-		_, _, err := usecase.AuthUser(ctx, idToken)
-		if !errors.Is(err, repository.ErrUnauthorized) {
-			t.Errorf("expected error: %v, got: %v", repository.ErrUnauthorized, err)
-		}
+		_, _, err := usecase.SignIn(ctx, idToken)
+		assert.Error(t, err)
 	})
 
 	t.Run("異常系: ユーザーが見つからない", func(t *testing.T) {
@@ -128,10 +123,8 @@ func TestAuthUser(t *testing.T) {
 		mockAuth.EXPECT().VerifyIDToken(ctx, idToken).Return(token, nil)
 		mockRepo.EXPECT().FindById(token.UID).Return(nil, gorm.ErrRecordNotFound)
 
-		_, _, err := usecase.AuthUser(ctx, idToken)
-		if !errors.Is(err, repository.ErrUserNotFound) {
-			t.Errorf("expected error: %v, got: %v", repository.ErrUserNotFound, err)
-		}
+		_, _, err := usecase.SignIn(ctx, idToken)
+		assert.Error(t, err)
 	})
 }
 
@@ -145,12 +138,12 @@ func TestGetAllUsers(t *testing.T) {
 	usecase := usecase.NewUserUsecase(mockRepo, mockAuth)
 
 	ctx := context.Background()
+	users := []*entity.User{
+		entity.NewUser(*entity.NewUserId("1"), "John Doe", "JohnDoe@gmail.com"),
+		entity.NewUser(*entity.NewUserId("2"), "Jane Doe", "JaneDoe@gmail.com"),
+	}
 
 	t.Run("正常系: ユーザーが正常に取得される", func(t *testing.T) {
-		users := []*entity.User{
-			{Id: "1", Name: "John Doe", Email: "John-Doe@gmail.com"},
-			{Id: "2", Name: "Jane Doe", Email: "Jane-Doe@gmail.com"},
-		}
 
 		mockRepo.EXPECT().FindAll().Return(users, nil)
 
@@ -175,9 +168,9 @@ func TestGetUser(t *testing.T) {
 
 	ctx := context.Background()
 	userId := "1"
+	user := entity.NewUser(*entity.NewUserId("1"), "John Doe", "JohnDoe@gmail.com")
 
 	t.Run("正常系: ユーザーが正常に取得される", func(t *testing.T) {
-		user := &entity.User{Id: userId, Name: "John Doe", Email: "example@co.jp"}
 		mockRepo.EXPECT().FindById(userId).Return(user, nil)
 
 		result, err := usecase.GetUser(ctx, userId)
@@ -185,8 +178,8 @@ func TestGetUser(t *testing.T) {
 
 			t.Errorf("unexpected error: %v", err)
 		}
-		if result.Id != userId {
-			t.Errorf("expected user id: %s, got: %s", userId, result.Id)
+		if result.GetId().Value() != userId {
+			t.Errorf("expected user id: %s, got: %s", userId, result.GetId().Value())
 		}
 	})
 }
@@ -203,7 +196,12 @@ func TestUpdateUser(t *testing.T) {
 	ctx := context.Background()
 	userId := "1"
 	name := "John Doe"
+	newName := "Jane Doe"
 	email := "John-Doe@gmail.com"
+	newEmail := "Jane-Doe@gmail.com"
+
+	user := entity.NewUser(*entity.NewUserId(userId), name, email)
+	toUpdateUser := entity.NewUser(*entity.NewUserId(userId), newName, newEmail)
 
 	updatedAuthUserRecord := &firebaseAuth.UserRecord{
 		ProviderUserInfo: []*firebaseAuth.UserInfo{
@@ -215,32 +213,34 @@ func TestUpdateUser(t *testing.T) {
 	}
 
 	t.Run("正常系: ユーザーが正常に更新される", func(t *testing.T) {
+		mockRepo.EXPECT().FindById(userId).Return(user, nil)
 		mockAuth.EXPECT().UpdateUser(ctx, userId, gomock.Any()).Return(updatedAuthUserRecord, nil)
-		mockRepo.EXPECT().Update(gomock.Any()).Return(nil)
+		mockRepo.EXPECT().Update(gomock.Any()).Return(toUpdateUser, nil)
 
-		err := usecase.UpdateUser(ctx, userId, name, email)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
+		updatedUser, err := usecase.UpdateUser(ctx, userId, newName, newEmail)
+		assert.NoError(t, err)
+		assert.NotNil(t, updatedUser)
+		assert.Equal(t, updatedUser.GetName(), newName)
+		assert.Equal(t, updatedUser.GetEmail(), newEmail)
 	})
 
 	t.Run("異常系: Firebase上のユーザー情報の更新に失敗する", func(t *testing.T) {
+		mockRepo.EXPECT().FindById(userId).Return(user, nil)
 		mockAuth.EXPECT().UpdateUser(ctx, userId, gomock.Any()).Return(nil, errors.New("firebase error"))
 
-		err := usecase.UpdateUser(ctx, userId, name, email)
-		if err == nil {
-			t.Errorf("expected error, got: %v", err)
-		}
+		updatedUser, err := usecase.UpdateUser(ctx, userId, name, email)
+		assert.Error(t, err)
+		assert.Nil(t, updatedUser)
 	})
 
 	t.Run("異常系: データベースのユーザー情報の更新に失敗する", func(t *testing.T) {
+		mockRepo.EXPECT().FindById(userId).Return(user, nil)
 		mockAuth.EXPECT().UpdateUser(ctx, userId, gomock.Any()).Return(updatedAuthUserRecord, nil)
-		mockRepo.EXPECT().Update(gomock.Any()).Return(errors.New("db error"))
+		mockRepo.EXPECT().Update(gomock.Any()).Return(nil, errors.New("db error"))
 
-		err := usecase.UpdateUser(ctx, userId, name, email)
-		if err == nil {
-			t.Errorf("expected error, got: %v", err)
-		}
+		updatedUser, err := usecase.UpdateUser(ctx, userId, name, email)
+		assert.Error(t, err)
+		assert.Nil(t, updatedUser)
 	})
 }
 
