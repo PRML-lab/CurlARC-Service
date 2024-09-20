@@ -118,7 +118,7 @@ func (h *UserHandler) SignIn() echo.HandlerFunc {
 // @Description Retrieves a list of all registered users
 // @Tags Users
 // @Produce json
-// @Success 200 {object} response.SuccessResponse{data=[]model.User}
+// @Success 200 {object} response.SuccessResponse{data=[]entity.User}
 // @Failure 500 {object} response.ErrorResponse
 // @Router /users [get]
 func (h *UserHandler) GetAllUsers() echo.HandlerFunc {
