@@ -1,4 +1,4 @@
-package injector
+package infra
 
 import (
 	"context"
@@ -11,8 +11,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-func InjectFirebaseAuthClient() *auth.Client {
-	// opt := option.WithCredentialsFile("service_account_file.json")
+func NewFireBaseAuthClient() *auth.Client {
 	serviceAccount := map[string]string{
 		"type":                        os.Getenv("FIREBASE_TYPE"),
 		"project_id":                  os.Getenv("FIREBASE_PROJECT_ID"),

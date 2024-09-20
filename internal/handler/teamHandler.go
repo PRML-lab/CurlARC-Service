@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"CurlARC/internal/domain/model"
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
@@ -46,7 +45,7 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 			})
 		}
 
-		err := h.teamUsecase.CreateTeam(req.Name, userId)
+		createdTeam, err := h.teamUsecase.CreateTeam(req.Name, userId)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -57,9 +56,18 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 			})
 		}
 
-		return c.JSON(http.StatusNoContent, response.SuccessResponse{
+		responseTeam := response.Team{
+			Id:   createdTeam.GetId().Value(),
+			Name: createdTeam.GetName(),
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   nil,
+			Data: struct {
+				Team response.Team `json:"team"`
+			}{
+				Team: responseTeam,
+			},
 		})
 	}
 }
@@ -87,11 +95,21 @@ func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
 			})
 		}
 
+		responseTeams := make([]response.Team, 0, len(teams))
+		for _, team := range teams {
+			responseTeams = append(responseTeams, response.Team{
+				Id:   team.GetId().Value(),
+				Name: team.GetName(),
+			})
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data: struct {Teams []*model.Team `json:"teams"`}{
-				Teams: teams,
-			} ,
+			Data: struct {
+				Teams []response.Team `json:"teams"`
+			}{
+				Teams: responseTeams,
+			},
 		})
 	}
 }
@@ -119,10 +137,20 @@ func (h *TeamHandler) GetInvitedTeams() echo.HandlerFunc {
 			})
 		}
 
+		responseTeams := make([]response.Team, 0, len(teams))
+		for _, team := range teams {
+			responseTeams = append(responseTeams, response.Team{
+				Id:   team.GetId().Value(),
+				Name: team.GetName(),
+			})
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data: struct {Teams []*model.Team `json:"teams"`}{
-				Teams: teams,
+			Data: struct {
+				Teams []response.Team
+			}{
+				Teams: responseTeams,
 			},
 		})
 	}
@@ -152,14 +180,18 @@ func (h *TeamHandler) GetAllTeams() echo.HandlerFunc {
 		responseTeams := make([]response.Team, 0, len(teams))
 		for _, team := range teams {
 			responseTeams = append(responseTeams, response.Team{
-				Id:   team.Id,
-				Name: team.Name,
+				Id:   team.GetId().Value(),
+				Name: team.GetName(),
 			})
 		}
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   responseTeams,
+			Data: struct {
+				Teams []response.Team
+			}{
+				Teams: responseTeams,
+			},
 		})
 	}
 }
@@ -190,7 +222,7 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 			})
 		}
 
-		err := h.teamUsecase.UpdateTeam(teamId, req.Name)
+		updatedTeam, err := h.teamUsecase.UpdateTeam(teamId, req.Name)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -201,9 +233,18 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 			})
 		}
 
+		responseTeam := response.Team{
+			Id:   updatedTeam.GetId().Value(),
+			Name: updatedTeam.GetName(),
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   nil,
+			Data: struct {
+				Team response.Team `json:"team"`
+			}{
+				Team: responseTeam,
+			},
 		})
 	}
 }
@@ -327,7 +368,7 @@ func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 		userId := c.Param("userId")
 
 		err := h.teamUsecase.RemoveMember(teamId, userId)
-		
+
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -351,7 +392,7 @@ func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 // @Tags Teams
 // @Param teamId path string true "Team ID"
 // @Produce json
-// @Success 200 {object} response.SuccessResponse{data=[]model.User}
+// @Success 200 {object} response.SuccessResponse{data=[]entity.User}
 // @Failure 500 {object} response.ErrorResponse
 // @Router /teams/{teamId}/members [get]
 func (h *TeamHandler) GetMembers() echo.HandlerFunc {
@@ -369,10 +410,21 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 			})
 		}
 
+		responseUsers := make([]response.User, 0, len(users))
+		for _, user := range users {
+			responseUsers = append(responseUsers, response.User{
+				Id:    user.GetId().Value(),
+				Name:  user.GetName(),
+				Email: user.GetEmail(),
+			})
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:  struct {Members []*model.User `json:"members"`}{
-				Members: users,
+			Data: struct {
+				Users []response.User `json:"users"`
+			}{
+				Users: responseUsers,
 			},
 		})
 	}

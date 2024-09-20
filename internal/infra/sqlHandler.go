@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"CurlARC/internal/domain/model"
 	"fmt"
 	"os"
 
@@ -34,16 +33,16 @@ func NewSqlHandler() *SqlHandler {
 
 	conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
-	// マイグレーション
-	err = conn.AutoMigrate(
-		&model.User{},
-		&model.Team{},
-		&model.UserTeam{},
-		&model.Record{},
-	)
-	if err != nil {
-		panic(err.Error)
-	}
+	// // マイグレーション
+	// err = conn.AutoMigrate(
+	// 	&User{},
+	// 	&Team{},
+	// 	&UserTeam{},
+	// 	&Record{},
+	// )
+	// if err != nil {
+	// 	panic(err.Error)
+	// }
 
 	sqlHandler := &SqlHandler{
 		Conn: conn,

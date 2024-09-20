@@ -1,11 +1,11 @@
 package repository
 
-import "CurlARC/internal/domain/model"
+import "CurlARC/internal/domain/entity"
 
 type TeamRepository interface {
-	Save(team *model.Team) (*model.Team, error)
-	FindAll() ([]*model.Team, error)
-	FindById(id string) (*model.Team, error)
-	Update(team *model.Team) error
+	Save(team *entity.Team) (*entity.Team, error)
+	FindAll() ([]*entity.Team, error)
+	FindById(id string) (*entity.Team, error)
+	Update(team *entity.Team) (*entity.Team, error)
 	Delete(id string) error
 }

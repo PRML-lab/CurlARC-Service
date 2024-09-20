@@ -1,24 +1,29 @@
 package request
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"time"
-
-	"gorm.io/datatypes"
 )
 
 type CreateRecordRequest struct {
-	Result        model.Result `json:"result"`
-	EnemyTeamName string       `json:"enemy_team_name"`
-	Place         string       `json:"place"`
-	Date          time.Time    `json:"date"`
+	Result        entity.Result `json:"result"`
+	EnemyTeamName string        `json:"enemy_team_name"`
+	Place         string        `json:"place"`
+	Date          time.Time     `json:"date"`
 }
 
 type AppendEndDataRequest struct {
-	EndsData datatypes.JSON `json:"ends_data"`
+	EndsData []entity.DataPerEnd `json:"ends_data"`
 }
 
-type UpdateRecordRequest = model.RecordUpdate
+type UpdateRecordRequest = struct {
+	Result        *entity.Result       `json:"result"`
+	EnemyTeamName *string              `json:"enemy_team_name"`
+	Place         *string              `json:"place"`
+	Date          *time.Time           `json:"date"`
+	EndsData      *[]entity.DataPerEnd `json:"ends_data"`
+	IsPublic      *bool                `json:"is_public"`
+}
 
 type SetVisibilityRequest struct {
 	IsPublic bool `json:"is_public"`

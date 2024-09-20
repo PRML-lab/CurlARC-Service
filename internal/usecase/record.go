@@ -1,27 +1,22 @@
 package usecase
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/handler/response"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
-
-	"gorm.io/datatypes"
 )
 
 type RecordUsecase interface {
-	CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error)
-	AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error)
-	GetRecordDetailsByRecordId(recordId string) (*model.Record, error)
+	CreateRecord(userId, teamId, enemyTeamName, place string, result entity.Result, date time.Time) (*entity.Record, error) // Create a new record which has no endsData
+	AppendEndData(recordId, userId string, endsData []entity.DataPerEnd) (*entity.Record, error)                            // Append endsData to an existing record
+	GetRecordDetailsByRecordId(recordId string) (*entity.Record, error)
 	GetRecordIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
-	GetRecordsByTeamId(teamId string) (*[]model.Record, error)
-	UpdateRecord(recordId, userId string, updates model.RecordUpdate) (*model.Record, error)
+	GetRecordsByTeamId(teamId string) (*[]entity.Record, error)
+	UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) (*entity.Record, error)
 	DeleteRecord(id string) error
-
-	SetVisibility(recordId, userId string, isPublic bool) (*model.Record, error)
+	SetVisibility(recordId, userId string, isPublic bool) (*entity.Record, error)
 }
 
 type recordUsecase struct {
@@ -34,11 +29,15 @@ func NewRecordUsecase(recordRepo repository.RecordRepository, userTeamRepo repos
 	return &recordUsecase{recordRepo: recordRepo, userTeamRepo: userTeamRepo, teamRepo: teamRepo}
 }
 
-func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string, result model.Result, date time.Time) (*model.Record, error) {
+func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string, result entity.Result, date time.Time) (*entity.Record, error) {
 
 	// check if the user is a member of the team
-	if _, err := u.userTeamRepo.IsMember(userId, teamId); err != nil {
+	isMember, err := u.userTeamRepo.IsMember(userId, teamId)
+	if err != nil {
 		return nil, err
+	}
+	if !isMember {
+		return nil, errors.New("user is not a member of the team")
 	}
 
 	// check if the team exists
@@ -46,20 +45,33 @@ func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string
 		return nil, err
 	}
 
-	fmt.Print("usecase", enemyTeamName)
+	// Create a new record
+	record, err := entity.NewRecord(
+		teamId,
+		entity.WithEnemyTeamName(enemyTeamName),
+		entity.WithPlace(place),
+		entity.WithDate(date),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	return u.recordRepo.Create(teamId, enemyTeamName, place, result, date)
+	// Save the record
+	savedRecord, err := u.recordRepo.Save(*record)
+
+	return savedRecord, err
 }
 
-func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatypes.JSON) (*model.Record, error) {
+func (u *recordUsecase) AppendEndData(recordId, userId string, endsData []entity.DataPerEnd) (*entity.Record, error) {
+
 	// Get the record by ID
-	record, err := u.recordRepo.FindByRecordId(recordId)
+	currentRecord, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if the user is a member of the team
-	isMember, err := u.userTeamRepo.IsMember(userId, record.TeamId)
+	isMember, err := u.userTeamRepo.IsMember(userId, currentRecord.GetTeamId())
 	if err != nil {
 		return nil, err
 	}
@@ -67,38 +79,20 @@ func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatype
 		return nil, errors.New("appender is not a member of the team")
 	}
 
-	// Initialize the existing endsData
-	var existingEndsData []model.DataPerEnd
-	if record.EndsData != nil {
-		if err := json.Unmarshal(record.EndsData, &existingEndsData); err != nil {
-			return nil, errors.New("invalid existing ends data format")
-		}
-	}
-
-	// Parse the new endsData
-	var newEndsData []model.DataPerEnd
-	if err := json.Unmarshal(endsData, &newEndsData); err != nil {
-		return nil, errors.New("invalid new ends data format")
-	}
-
-	// Merge or append the new data to the existing data
-	updatedEndsData := append(existingEndsData, newEndsData...)
-
-	// Convert the updated data back to JSON
-	updatedEndsDataJSON, err := json.Marshal(updatedEndsData)
+	// Append the new endsData to the record
+	newEndsData := append(currentRecord.GetEndsData(), endsData...)
+	err = currentRecord.ValidateEndsData(newEndsData)
 	if err != nil {
-		return nil, errors.New("failed to marshal updated ends data")
+		return nil, err
 	}
-
-	updatedEndsDataDatatypesJSON := datatypes.JSON(updatedEndsDataJSON)
-
-	// Prepare the update struct
-	updateFields := model.RecordUpdate{
-		EndsData: &updatedEndsDataDatatypesJSON,
+	newRecord := currentRecord
+	err = newRecord.SetEndsData(newEndsData)
+	if err != nil {
+		return nil, err
 	}
 
 	// Update the record with the new endsData
-	updatedRecord, err := u.recordRepo.Update(recordId, updateFields)
+	updatedRecord, err := u.recordRepo.Update(*newRecord)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +100,7 @@ func (u *recordUsecase) AppendEndData(recordId, userId string, endsData datatype
 	return updatedRecord, nil
 }
 
-func (u *recordUsecase) GetRecordDetailsByRecordId(recordId string) (*model.Record, error) {
+func (u *recordUsecase) GetRecordDetailsByRecordId(recordId string) (*entity.Record, error) {
 	return u.recordRepo.FindByRecordId(recordId)
 }
 
@@ -114,11 +108,12 @@ func (u *recordUsecase) GetRecordIndicesByTeamId(teamId string) (*[]response.Rec
 	return u.recordRepo.FindIndicesByTeamId(teamId)
 }
 
-func (u *recordUsecase) GetRecordsByTeamId(teamId string) (*[]model.Record, error) {
+func (u *recordUsecase) GetRecordsByTeamId(teamId string) (*[]entity.Record, error) {
 	return u.recordRepo.FindByTeamId(teamId)
 }
 
-func (u *recordUsecase) UpdateRecord(recordId, userId string, updates model.RecordUpdate) (*model.Record, error) {
+func (u *recordUsecase) UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) (*entity.Record, error) {
+
 	// Get the record by ID
 	record, err := u.recordRepo.FindByRecordId(recordId)
 	if err != nil {
@@ -126,7 +121,7 @@ func (u *recordUsecase) UpdateRecord(recordId, userId string, updates model.Reco
 	}
 
 	// Check if the user is a member of the team
-	isMember, err := u.userTeamRepo.IsMember(userId, record.TeamId)
+	isMember, err := u.userTeamRepo.IsMember(userId, record.GetTeamId())
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +129,31 @@ func (u *recordUsecase) UpdateRecord(recordId, userId string, updates model.Reco
 		return nil, errors.New("updater is not a member of the team")
 	}
 
+	// Prepare the update struct
+	newRecord := record
+
+	if enemyTeamName != "" {
+		newRecord.SetEnemyTeamName(enemyTeamName)
+	}
+	if place != "" {
+		newRecord.SetPlace(place)
+	}
+	if !date.IsZero() {
+		newRecord.SetDate(date)
+	}
+	if len(endsData) > 0 {
+		err = newRecord.ValidateEndsData(endsData)
+		if err != nil {
+			return nil, err
+		}
+		err = newRecord.SetEndsData(endsData)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Update the record with only the fields provided in the updates
-	updatedRecord, err := u.recordRepo.Update(recordId, updates)
+	updatedRecord, err := u.recordRepo.Update(*newRecord)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +165,7 @@ func (u *recordUsecase) DeleteRecord(id string) error {
 	return u.recordRepo.Delete(id)
 }
 
-func (u *recordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*model.Record, error) {
+func (u *recordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*entity.Record, error) {
 
 	// check if the record exists
 	record, err := u.recordRepo.FindByRecordId(recordId)
@@ -156,7 +174,7 @@ func (u *recordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*
 	}
 
 	// check if the user is the member of the record
-	isMember, err := u.userTeamRepo.IsMember(userId, record.TeamId)
+	isMember, err := u.userTeamRepo.IsMember(userId, record.GetTeamId())
 	if err != nil {
 		return nil, err
 	}
@@ -164,10 +182,14 @@ func (u *recordUsecase) SetVisibility(recordId, userId string, isPublic bool) (*
 		return nil, errors.New("inviter is not a member of the team")
 	}
 
-	// Prepare the update struct
-	updateFields := model.RecordUpdate{
-		IsPublic: &isPublic,
+	// update the record
+	newRecord := record
+	newRecord.SetVisibility(isPublic)
+
+	updatedRecord, err := u.recordRepo.Update(*newRecord)
+	if err != nil {
+		return nil, err
 	}
 
-	return u.recordRepo.Update(recordId, updateFields)
+	return updatedRecord, nil
 }

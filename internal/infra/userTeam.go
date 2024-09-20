@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 	"errors"
 
@@ -17,18 +17,39 @@ func NewUserTeamRepository(sqlHandler SqlHandler) repository.UserTeamRepository 
 	return &userTeamRepository
 }
 
-func (userTeamRepo *UserTeamRepository) Save(userId, teamId string, state model.UserTeamState) error {
-	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId, State: state}
-	result := userTeamRepo.SqlHandler.Conn.Create(userTeam)
-	if result.Error != nil {
-		return result.Error
+type UserTeam struct {
+	UserId string `gorm:"primaryKey"`
+	TeamId string `gorm:"primaryKey"`
+	State  string `gorm:"type:varchar(100)"`
+}
+
+func (userTeam *UserTeam) FromDomain(userTeamEntity *entity.UserTeam) {
+	userTeam.UserId = userTeamEntity.GetUserId().Value()
+	userTeam.TeamId = userTeamEntity.GetTeamId().Value()
+	userTeam.State = string(userTeamEntity.GetState())
+}
+
+func (userTeam *UserTeam) ToDomain() *entity.UserTeam {
+	return entity.NewUserTeam(
+		*entity.NewUserId(userTeam.UserId),
+		*entity.NewTeamId(userTeam.TeamId),
+		entity.UserTeamState(userTeam.State),
+	)
+}
+
+func (userTeamRepo *UserTeamRepository) Save(userTeam *entity.UserTeam) (*entity.UserTeam, error) {
+	var dbUserTeam UserTeam
+	dbUserTeam.FromDomain(userTeam)
+
+	if err := userTeamRepo.SqlHandler.Conn.Create(&dbUserTeam).Error; err != nil {
+		return nil, err
 	}
-	return nil
+
+	return dbUserTeam.ToDomain(), nil
 }
 
 func (userTeamRepo *UserTeamRepository) FindUsersByTeamId(teamId string) ([]string, error) {
-
-	var userTeams []*model.UserTeam
+	var userTeams []*UserTeam
 	result := userTeamRepo.SqlHandler.Conn.Where("team_id = ?", teamId).Find(&userTeams)
 
 	if result.Error != nil {
@@ -44,8 +65,7 @@ func (userTeamRepo *UserTeamRepository) FindUsersByTeamId(teamId string) ([]stri
 }
 
 func (userTeamRepo *UserTeamRepository) FindMembersByTeamId(teamId string) ([]string, error) {
-
-	var userTeams []*model.UserTeam
+	var userTeams []*UserTeam
 	result := userTeamRepo.SqlHandler.Conn.Where("team_id = ? AND state = ?", teamId, "MEMBER").Find(&userTeams)
 
 	if result.Error != nil {
@@ -58,13 +78,12 @@ func (userTeamRepo *UserTeamRepository) FindMembersByTeamId(teamId string) ([]st
 	}
 
 	return userIds, nil
-
 }
 
 func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]string, error) {
+	var userTeams []*UserTeam
+	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ?", userId).Find(&userTeams)
 
-	var userTeams []*model.UserTeam
-	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, "MEMBER").Find(&userTeams)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -78,9 +97,9 @@ func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]stri
 }
 
 func (userTeamRepo *UserTeamRepository) FindInvitedTeamsByUserId(userId string) ([]string, error) {
-
-	var userTeams []*model.UserTeam
+	var userTeams []*UserTeam
 	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, "INVITED").Find(&userTeams)
+
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -93,18 +112,27 @@ func (userTeamRepo *UserTeamRepository) FindInvitedTeamsByUserId(userId string) 
 	return teamIds, nil
 }
 
-func (userTeamRepo *UserTeamRepository) UpdateState(userId, teamId string) error {
-	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
-	result := userTeamRepo.SqlHandler.Conn.Model(userTeam).Update("state", "MEMBER")
+func (userTeamRepo *UserTeamRepository) UpdateState(userTeam *entity.UserTeam) (*entity.UserTeam, error) {
+	var dbUserTeam UserTeam
+	dbUserTeam.FromDomain(userTeam)
+
+	result := userTeamRepo.SqlHandler.Conn.Model(&dbUserTeam).
+		Where("user_id = ? AND team_id = ?", dbUserTeam.UserId, dbUserTeam.TeamId).
+		Update("state", dbUserTeam.State)
+
 	if result.Error != nil {
-		return result.Error
+		return nil, result.Error
 	}
-	return nil
+
+	if result.RowsAffected == 0 {
+		return nil, errors.New("user team not found")
+	}
+
+	return dbUserTeam.ToDomain(), nil
 }
 
 func (userTeamRepo *UserTeamRepository) Delete(userId, teamId string) error {
-	userTeam := &model.UserTeam{UserId: userId, TeamId: teamId}
-	result := userTeamRepo.SqlHandler.Conn.Delete(userTeam)
+	result := userTeamRepo.SqlHandler.Conn.Delete(&UserTeam{}, "user_id = ? AND team_id = ?", userId, teamId)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -112,13 +140,16 @@ func (userTeamRepo *UserTeamRepository) Delete(userId, teamId string) error {
 }
 
 func (userTeamRepo *UserTeamRepository) IsMember(userId, teamId string) (bool, error) {
-	userTeam := &model.UserTeam{}
-	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND team_id = ? AND state = ?", userId, teamId, "MEMBER").First(userTeam)
+	var userTeam UserTeam
+	result := userTeamRepo.SqlHandler.Conn.First(&userTeam, "user_id = ? AND team_id = ?", userId, teamId)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
+
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
 		return false, result.Error
 	}
-	return true, nil
+
+	return userTeam.State == "MEMBER", nil
 }

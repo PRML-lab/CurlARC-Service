@@ -16,7 +16,7 @@ func InjectUserRepository() repository.UserRepository {
 
 func InjectUserUsecase() usecase.UserUsecase {
 	userRepo := InjectUserRepository()
-	authClient := InjectFirebaseAuthClient()
+	authClient := infra.NewFireBaseAuthClient()
 	return usecase.NewUserUsecase(userRepo, authClient)
 }
 
