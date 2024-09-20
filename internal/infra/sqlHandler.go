@@ -33,16 +33,16 @@ func NewSqlHandler() *SqlHandler {
 
 	conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
-	// マイグレーション
-	err = conn.AutoMigrate(
-		&User{},
-		&Team{},
-		&UserTeam{},
-		&Record{},
-	)
-	if err != nil {
-		panic(err.Error)
-	}
+	// // マイグレーション
+	// err = conn.AutoMigrate(
+	// 	&User{},
+	// 	&Team{},
+	// 	&UserTeam{},
+	// 	&Record{},
+	// )
+	// if err != nil {
+	// 	panic(err.Error)
+	// }
 
 	sqlHandler := &SqlHandler{
 		Conn: conn,
