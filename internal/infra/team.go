@@ -14,13 +14,6 @@ func NewTeamRepository(sqlHandler SqlHandler) repository.TeamRepository {
 	return &teamRepository
 }
 
-type Team struct {
-	Id      string   `gorm:"primaryKey"`
-	Name    string   `gorm:"type:varchar(100)"`
-	Records []Record `gorm:"foreignKey:TeamId"`
-	Users   []User   `gorm:"many2many:user_teams;"`
-}
-
 func (team *Team) FromDomain(domain *entity.Team) {
 	team.Id = domain.GetId().Value()
 	team.Name = domain.GetName()

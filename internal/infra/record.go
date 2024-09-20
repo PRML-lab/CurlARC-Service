@@ -5,7 +5,6 @@ import (
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/handler/response"
 	"encoding/json"
-	"time"
 
 	"gorm.io/datatypes"
 )
@@ -17,18 +16,6 @@ type RecordRepository struct {
 func NewRecordRepository(sqlHandler SqlHandler) repository.RecordRepository {
 	recordRepository := RecordRepository{SqlHandler: sqlHandler}
 	return &recordRepository
-}
-
-// define the struct for the database
-type Record struct {
-	Id            string         `gorm:"type:uuid;primaryKey"`
-	TeamId        string         `gorm:"foreignKey:TeamId"`
-	Result        string         `gorm:"type:varchar(10)"`
-	EnemyTeamName string         `gorm:"type:varchar(255)"`
-	Place         string         `gorm:"type:varchar(255)"`
-	Date          time.Time      `gorm:"type:timestamp"`
-	EndsDataJSON  datatypes.JSON `gorm:"type:json"`
-	IsPublic      bool           `gorm:"type:boolean"`
 }
 
 func (r *Record) FromDomain(record *entity.Record) {
