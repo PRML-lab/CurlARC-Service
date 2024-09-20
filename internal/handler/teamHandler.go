@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
@@ -57,12 +56,17 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 			})
 		}
 
-		return c.JSON(http.StatusNoContent, response.SuccessResponse{
+		responseTeam := response.Team{
+			Id:   createdTeam.GetId().Value(),
+			Name: createdTeam.GetName(),
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
-				Team *entity.Team `json:"team"`
+				Team response.Team `json:"team"`
 			}{
-				Team: createdTeam,
+				Team: responseTeam,
 			},
 		})
 	}
@@ -91,12 +95,20 @@ func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
 			})
 		}
 
+		responseTeams := make([]response.Team, 0, len(teams))
+		for _, team := range teams {
+			responseTeams = append(responseTeams, response.Team{
+				Id:   team.GetId().Value(),
+				Name: team.GetName(),
+			})
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
-				Teams []*entity.Team `json:"teams"`
+				Teams []response.Team `json:"teams"`
 			}{
-				Teams: teams,
+				Teams: responseTeams,
 			},
 		})
 	}
@@ -125,12 +137,20 @@ func (h *TeamHandler) GetInvitedTeams() echo.HandlerFunc {
 			})
 		}
 
+		responseTeams := make([]response.Team, 0, len(teams))
+		for _, team := range teams {
+			responseTeams = append(responseTeams, response.Team{
+				Id:   team.GetId().Value(),
+				Name: team.GetName(),
+			})
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
-				Teams []*entity.Team `json:"teams"`
+				Teams []response.Team
 			}{
-				Teams: teams,
+				Teams: responseTeams,
 			},
 		})
 	}
@@ -167,7 +187,11 @@ func (h *TeamHandler) GetAllTeams() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   responseTeams,
+			Data: struct {
+				Teams []response.Team
+			}{
+				Teams: responseTeams,
+			},
 		})
 	}
 }
@@ -209,12 +233,17 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 			})
 		}
 
+		responseTeam := response.Team{
+			Id:   updatedTeam.GetId().Value(),
+			Name: updatedTeam.GetName(),
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
-				Team *entity.Team `json:"team"`
+				Team response.Team `json:"team"`
 			}{
-				Team: updatedTeam,
+				Team: responseTeam,
 			},
 		})
 	}
@@ -381,12 +410,21 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 			})
 		}
 
+		responseUsers := make([]response.User, 0, len(users))
+		for _, user := range users {
+			responseUsers = append(responseUsers, response.User{
+				Id:    user.GetId().Value(),
+				Name:  user.GetName(),
+				Email: user.GetEmail(),
+			})
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
-				Members []*entity.User `json:"members"`
+				Users []response.User `json:"users"`
 			}{
-				Members: users,
+				Users: responseUsers,
 			},
 		})
 	}
