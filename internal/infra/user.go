@@ -14,14 +14,6 @@ func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
 	return &rsitory
 }
 
-// define the struct for the database
-type User struct {
-	Id    string `gorm:"primaryKey"`
-	Name  string `gorm:"type:varchar(100)"`
-	Email string `gorm:"uniqueIndex;type:varchar(100)"`
-	Teams []Team `gorm:"many2many:user_teams;"`
-}
-
 func (u *User) FromDomain(user *entity.User) {
 	u.Id = user.GetId().Value()
 	u.Name = user.GetName()
