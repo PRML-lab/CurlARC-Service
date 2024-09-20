@@ -63,7 +63,11 @@ func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   responseTeam,
+			Data: struct {
+				Team response.Team `json:"team"`
+			}{
+				Team: responseTeam,
+			},
 		})
 	}
 }
@@ -101,7 +105,11 @@ func (h *TeamHandler) GetTeamsByUserId() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   responseTeams,
+			Data: struct {
+				Teams []response.Team `json:"teams"`
+			}{
+				Teams: responseTeams,
+			},
 		})
 	}
 }
@@ -139,7 +147,11 @@ func (h *TeamHandler) GetInvitedTeams() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   responseTeams,
+			Data: struct {
+				Teams []response.Team
+			}{
+				Teams: responseTeams,
+			},
 		})
 	}
 }
@@ -175,7 +187,11 @@ func (h *TeamHandler) GetAllTeams() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   responseTeams,
+			Data: struct {
+				Teams []response.Team
+			}{
+				Teams: responseTeams,
+			},
 		})
 	}
 }
@@ -217,11 +233,17 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 			})
 		}
 
+		responseTeam := response.Team{
+			Id:   updatedTeam.GetId().Value(),
+			Name: updatedTeam.GetName(),
+		}
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data: response.Team{
-				Id:   updatedTeam.GetId().Value(),
-				Name: updatedTeam.GetName(),
+			Data: struct {
+				Team response.Team `json:"team"`
+			}{
+				Team: responseTeam,
 			},
 		})
 	}
@@ -399,7 +421,11 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data:   responseUsers,
+			Data: struct {
+				Users []response.User `json:"users"`
+			}{
+				Users: responseUsers,
+			},
 		})
 	}
 }
