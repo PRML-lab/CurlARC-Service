@@ -58,7 +58,7 @@ func (h *UserHandler) SignUp() echo.HandlerFunc {
 
 		return c.JSON(http.StatusCreated, response.SuccessResponse{
 			Status: "success",
-			Data: response.GetUserResponse{
+			Data: response.User{
 				Id:    signUpedUser.GetId().Value(),
 				Name:  signUpedUser.GetName(),
 				Email: signUpedUser.GetEmail(),
@@ -146,7 +146,7 @@ func (h *UserHandler) GetAllUsers() echo.HandlerFunc {
 // @Description Retrieves information about the currently authenticated user
 // @Tags Users
 // @Produce json
-// @Success 200 {object} response.SuccessResponse{data=response.GetUserResponse}
+// @Success 200 {object} response.SuccessResponse{data=response.User}
 // @Failure 500 {object} response.ErrorResponse
 // @Router /users/me [get]
 func (h *UserHandler) GetUser() echo.HandlerFunc {
@@ -164,7 +164,7 @@ func (h *UserHandler) GetUser() echo.HandlerFunc {
 			})
 		}
 
-		res := response.GetUserResponse{
+		res := response.User{
 			Id:    user.GetId().Value(),
 			Name:  user.GetName(),
 			Email: user.GetEmail(),
