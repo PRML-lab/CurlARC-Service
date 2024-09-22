@@ -22,8 +22,8 @@ func InitRouting(
 	})
 
 	// 認証が不要なエンドポイント
-	e.POST("/signup", userHandler.SignUp())
-	e.POST("/signin", userHandler.SignIn())
+	// e.POST("/signup", userHandler.SignUp())
+	e.POST("/authorize", userHandler.Authorize())
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// 認証が必要なルートにミドルウェアを適用
