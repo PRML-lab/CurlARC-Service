@@ -21,7 +21,7 @@ func (u *User) FromDomain(user *entity.User) {
 }
 
 func (u *User) ToDomain() *entity.User {
-	user := entity.NewUser(*entity.NewUserId(u.Id), u.Name, u.Email)
+	user := entity.NewUserFromDB(u.Id, u.Name, u.Email)
 	return user
 }
 
