@@ -11,6 +11,7 @@ internal/usecase
 # モック生成のターゲット
 .PHONY: mockgen
 mockgen:
+	make clean-mocks
 	@echo "Starting mock generation..."
 	@mkdir -p $(MOCK_DIR)
 	@cd $(ROOT) && \

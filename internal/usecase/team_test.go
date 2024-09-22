@@ -27,7 +27,7 @@ func TestCreateTeam(t *testing.T) {
 	)
 
 	team := entity.NewTeam("Team A")
-	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
+	user := entity.NewUser("User A", "user-123@gmail.com")
 	userId := user.GetId().Value()
 
 	t.Run("正常系: チームが正常に作成される", func(t *testing.T) {
@@ -187,9 +187,13 @@ func TestInviteUsers(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	team := entity.NewTeam("Team A")
-	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
-	user1 := entity.NewUser(*entity.NewUserId("newcommer1"), "Newcommer 1", "newcommer1@gmail.com")
-	user2 := entity.NewUser(*entity.NewUserId("newcommer2"), "Newcommer 2", "newcommer2@gmail.com")
+	teamID := team.GetId().Value()
+	user := entity.NewUser("User A", "user-123@gmail.com")
+	userID := user.GetId().Value()
+	user1 := entity.NewUser("Newcommer 1", "newcommer1@gmail.com")
+	user1ID := user1.GetId().Value()
+	user2 := entity.NewUser("Newcommer 2", "newcommer2@gmail.com")
+	user2ID := user2.GetId().Value()
 	userTeam1 := entity.NewUserTeam(*user1.GetId(), *team.GetId(), entity.Invited)
 	userTeam2 := entity.NewUserTeam(*user2.GetId(), *team.GetId(), entity.Invited)
 	targetUserEmails := []string{
@@ -200,21 +204,21 @@ func TestInviteUsers(t *testing.T) {
 	t.Run("正常系: ユーザーが正常に招待される", func(t *testing.T) {
 
 		// チームと招待者ユーザーの存在確認
-		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
-		mockUserRepo.EXPECT().FindById("user-123").Return(user, nil)
-		mockUserTeamRepo.EXPECT().IsMember("user-123", "team-123").Return(true, nil)
+		mockTeamRepo.EXPECT().FindById(teamID).Return(team, nil)
+		mockUserRepo.EXPECT().FindById(userID).Return(user, nil)
+		mockUserTeamRepo.EXPECT().IsMember(userID, teamID).Return(true, nil)
 
 		// 招待対象ユーザーの存在確認と招待
 		// 1人目
-		mockUserRepo.EXPECT().FindByEmail("newcommer1@gmail.com").Return(user1, nil)
-		mockUserTeamRepo.EXPECT().IsMember("newcommer1", "team-123").Return(false, nil)
+		mockUserRepo.EXPECT().FindByEmail(user1.GetEmail()).Return(user1, nil)
+		mockUserTeamRepo.EXPECT().IsMember(user1ID, teamID).Return(false, nil)
 		mockUserTeamRepo.EXPECT().Save(gomock.Any()).Return(userTeam1, nil)
 		// 2人目
-		mockUserRepo.EXPECT().FindByEmail("newcommer2@gmail.com").Return(user2, nil)
-		mockUserTeamRepo.EXPECT().IsMember("newcommer2", "team-123").Return(false, nil)
+		mockUserRepo.EXPECT().FindByEmail(user2.GetEmail()).Return(user2, nil)
+		mockUserTeamRepo.EXPECT().IsMember(user2ID, teamID).Return(false, nil)
 		mockUserTeamRepo.EXPECT().Save(gomock.Any()).Return(userTeam2, nil)
 
-		err := teamUsecase.InviteUsers("team-123", "user-123", targetUserEmails)
+		err := teamUsecase.InviteUsers(teamID, userID, targetUserEmails)
 		assert.NoError(t, err)
 	})
 
@@ -257,7 +261,7 @@ func TestAcceptInvitation(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	team := entity.NewTeam("Team A")
-	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
+	user := entity.NewUser("User A", "user-123@gmail.com")
 	acceptedUserTeam := entity.NewUserTeam(*user.GetId(), *team.GetId(), entity.Member)
 
 	t.Run("正常系: 招待を受け入れる", func(t *testing.T) {
@@ -298,7 +302,7 @@ func TestRemoveMember(t *testing.T) {
 	teamUsecase := usecase.NewTeamUsecase(mockTeamRepo, mockUserRepo, mockUserTeamRepo)
 
 	team := entity.NewTeam("Team A")
-	user := entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com")
+	user := entity.NewUser("User A", "user-123@gmail.com")
 
 	t.Run("正常系: メンバーが正常に削除される", func(t *testing.T) {
 		mockTeamRepo.EXPECT().FindById("team-123").Return(team, nil)
@@ -417,8 +421,8 @@ func TestGetMembersByTeamId(t *testing.T) {
 	teamId := "team-123"
 	userIds := []string{"user-123", "user-456"}
 	users := []*entity.User{
-		entity.NewUser(*entity.NewUserId("user-123"), "User A", "user-123@gmail.com"),
-		entity.NewUser(*entity.NewUserId("user-456"), "User B", "user-456@gmail.com"),
+		entity.NewUser("User A", "user-123@gmail.com"),
+		entity.NewUser("User B", "user-456@gmail.com"),
 	}
 
 	t.Run("正常系: チームのメンバーが正常に取得される", func(t *testing.T) {
