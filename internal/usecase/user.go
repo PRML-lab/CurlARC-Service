@@ -3,13 +3,14 @@ package usecase
 import (
 	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
+	"CurlARC/internal/utils"
 
 	"github.com/labstack/echo/v4"
 )
 
 type UserUsecase interface {
 	// CRUD
-	Authorize(c echo.Context, name, email string) (*entity.User, error)
+	Authorize(c echo.Context, idToken string) (*entity.User, *string, error)
 	GetAllUsers(c echo.Context) ([]*entity.User, error)
 	GetUser(c echo.Context, id string) (*entity.User, error)
 	UpdateUser(c echo.Context, id, name, email string) (*entity.User, error)
@@ -24,7 +25,17 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 	return &userUsecase{userRepo: userRepo}
 }
 
-func (usecase *userUsecase) Authorize(c echo.Context, name, email string) (*entity.User, error) {
+func (usecase *userUsecase) Authorize(c echo.Context, idToken string) (*entity.User, *string, error) {
+	// Verify the ID token
+	payload, err := utils.VerifyGoogleIDToken(c.Request().Context(), idToken)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Extract the user's name and email from the payload
+	name := payload.Claims["name"].(string)
+	email := payload.Claims["email"].(string)
+
 	// Find the user by email
 	user, err := usecase.userRepo.FindByEmail(email)
 	if err != nil && err.Error() == "record not found" {
@@ -32,11 +43,17 @@ func (usecase *userUsecase) Authorize(c echo.Context, name, email string) (*enti
 		user = entity.NewUser(name, email)
 		user, err = usecase.userRepo.Save(user)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
-	return user, nil
+	// Generate a backend access token
+	accessToken, err := utils.GenerateBackendAccessToken(user.GetId().Value())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return user, &accessToken, nil
 }
 
 func (usecase *userUsecase) GetAllUsers(c echo.Context) ([]*entity.User, error) {

@@ -44,7 +44,7 @@ func (h *UserHandler) Authorize() echo.HandlerFunc {
 			})
 		}
 
-		user, err := h.userUsecase.Authorize(c, req.Name, req.Email)
+		user, accessToken, err := h.userUsecase.Authorize(c, req.IdToken)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
 				Status: "error",
@@ -55,19 +55,18 @@ func (h *UserHandler) Authorize() echo.HandlerFunc {
 			})
 		}
 
-		res := response.User{
-			Id:    user.GetId().Value(),
-			Name:  user.GetName(),
-			Email: user.GetEmail(),
+		res := response.AuthorizeResponse{
+			User: response.User{
+				Id:    user.GetId().Value(),
+				Name:  user.GetName(),
+				Email: user.GetEmail(),
+			},
+			AccessToken: *accessToken,
 		}
 
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
-			Data: struct {
-				User response.User `json:"user"`
-			}{
-				User: res,
-			},
+			Data:   res,
 		})
 	}
 }

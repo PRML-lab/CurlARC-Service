@@ -8,8 +8,6 @@ package request
 
 type AuthorizeRequest struct {
 	IdToken string `json:"id_token"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
 }
 
 type GetUserRequest struct {
