@@ -17,7 +17,11 @@ type Claims struct {
 }
 
 func VerifyGoogleIDToken(ctx context.Context, idToken string) (*idtoken.Payload, error) {
-	payload, err := idtoken.Validate(ctx, idToken, os.Getenv("GOOGLE_CLIENT_ID"))
+	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
+	if googleClientID == "" {
+		return nil, errors.New("GOOGLE_CLIENT_ID is not set")
+	}
+	payload, err := idtoken.Validate(ctx, idToken, googleClientID)
 	if err != nil {
 		return nil, err
 	}
