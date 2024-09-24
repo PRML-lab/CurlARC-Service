@@ -26,11 +26,11 @@ func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
 // @Accept json
 // @Produce json
 // @Param user body request.SignInRequest true "User login information"
-// @Success 200 {object} response.SuccessResponse{data=response.SignInResponse}
+// @Success 200 {object} response.SuccessResponse{data=response.AuthorizeResponse}
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /signin [post]
+// @Router /authorize [post]
 func (h *UserHandler) Authorize() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req request.AuthorizeRequest
