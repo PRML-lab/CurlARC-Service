@@ -31,6 +31,10 @@ func GenerateBackendAccessToken(userId string) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	secret := os.Getenv("BACKEND_ACCESS_TOKEN_SECRET")
+	if secret == "" {
+		return "", errors.New("BACKEND_ACCESS_TOKEN_SECRET is not set")
+	}
+
 	return token.SignedString([]byte(secret))
 }
 
