@@ -25,7 +25,7 @@ func NewUserHandler(userUsecase usecase.UserUsecase) UserHandler {
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param user body request.SignInRequest true "User login information"
+// @Param user body request.AuthorizeRequest true "User login information"
 // @Success 200 {object} response.SuccessResponse{data=response.AuthorizeResponse}
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
