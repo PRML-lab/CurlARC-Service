@@ -1,12 +1,12 @@
 package request
 
-type SignUpRequest struct {
-	IdToken string `json:"id_token"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-}
+// type SignUpRequest struct {
+// 	IdToken string `json:"id_token"`
+// 	Name    string `json:"name"`
+// 	Email   string `json:"email"`
+// }
 
-type SignInRequest struct {
+type AuthorizeRequest struct {
 	IdToken string `json:"id_token"`
 }
 

@@ -1,5 +1,7 @@
 package entity
 
+import "github.com/google/uuid"
+
 type User struct {
 	id    UserId
 	name  string
@@ -7,9 +9,19 @@ type User struct {
 	teams []Team
 }
 
-func NewUser(id UserId, name string, email string) *User {
+func NewUser(name string, email string) *User {
+	userId := NewUserId(uuid.New().String())
 	return &User{
-		id:    id,
+		id:    *userId,
+		name:  name,
+		email: email,
+	}
+}
+
+func NewUserFromDB(id string, name string, email string) *User {
+	userId := NewUserId(id)
+	return &User{
+		id:    *userId,
 		name:  name,
 		email: email,
 	}

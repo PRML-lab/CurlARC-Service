@@ -17,12 +17,6 @@ func NewUserTeamRepository(sqlHandler SqlHandler) repository.UserTeamRepository 
 	return &userTeamRepository
 }
 
-type UserTeam struct {
-	UserId string `gorm:"primaryKey"`
-	TeamId string `gorm:"primaryKey"`
-	State  string `gorm:"type:varchar(100)"`
-}
-
 func (userTeam *UserTeam) FromDomain(userTeamEntity *entity.UserTeam) {
 	userTeam.UserId = userTeamEntity.GetUserId().Value()
 	userTeam.TeamId = userTeamEntity.GetTeamId().Value()

@@ -40,13 +40,13 @@ func JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		tokenStr := bearerToken[1]
 
 		// JWTトークンの解析と検証
-		claims, err := utils.ParseJWT(tokenStr)
+		claims, err := utils.ParseBackendAccessToken(tokenStr) // jwtKeyを使って署名検証
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.ErrorResponse{
 				Status: "error",
 				Error: response.ErrorDetail{
 					Code:    http.StatusUnauthorized,
-					Message: "invalid token",
+					Message: err.Error(),
 				},
 			})
 		}

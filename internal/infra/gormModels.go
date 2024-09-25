@@ -9,11 +9,18 @@ import (
 type Team struct {
 	Id      string   `gorm:"primaryKey"`
 	Name    string   `gorm:"type:varchar(100)"`
-	Records []Record `gorm:"foreignKey:TeamId"`
+	Records []Record `gorm:"foreignKey:TeamId;constraint:OnDelete:CASCADE;"`
 	Users   []User   `gorm:"many2many:user_teams;"`
 }
 
-// define the struct for the database
+type UserTeam struct {
+	UserId string `gorm:"primaryKey"`
+	TeamId string `gorm:"primaryKey"`
+	State  string `gorm:"type:varchar(100)"`
+	Team   Team   `gorm:"foreignKey:TeamId;constraint:OnDelete:CASCADE;"`
+	User   User   `gorm:"foreignKey:UserId"`
+}
+
 type User struct {
 	Id    string `gorm:"primaryKey"`
 	Name  string `gorm:"type:varchar(100)"`
@@ -30,4 +37,5 @@ type Record struct {
 	Date          time.Time      `gorm:"type:timestamp"`
 	EndsDataJSON  datatypes.JSON `gorm:"type:json"`
 	IsPublic      bool           `gorm:"type:boolean"`
+	Team          Team           `gorm:"foreignKey:TeamId;constraint:OnDelete:CASCADE;"`
 }

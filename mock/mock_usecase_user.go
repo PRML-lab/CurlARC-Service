@@ -6,11 +6,10 @@ package mock
 
 import (
 	entity "CurlARC/internal/domain/entity"
-	context "context"
-	http "net/http"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	echo "github.com/labstack/echo/v4"
 )
 
 // MockUserUsecase is a mock of UserUsecase interface.
@@ -36,92 +35,76 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 	return m.recorder
 }
 
-// DeleteUser mocks base method.
-func (m *MockUserUsecase) DeleteUser(ctx context.Context, id string) error {
+// Authorize mocks base method.
+func (m *MockUserUsecase) Authorize(c echo.Context, name, email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUser", ctx, id)
+	ret := m.ctrl.Call(m, "Authorize", c, name, email)
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Authorize indicates an expected call of Authorize.
+func (mr *MockUserUsecaseMockRecorder) Authorize(c, name, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockUserUsecase)(nil).Authorize), c, name, email)
+}
+
+// DeleteUser mocks base method.
+func (m *MockUserUsecase) DeleteUser(c echo.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", c, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteUser indicates an expected call of DeleteUser.
-func (mr *MockUserUsecaseMockRecorder) DeleteUser(ctx, id interface{}) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) DeleteUser(c, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserUsecase)(nil).DeleteUser), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserUsecase)(nil).DeleteUser), c, id)
 }
 
 // GetAllUsers mocks base method.
-func (m *MockUserUsecase) GetAllUsers(ctx context.Context) ([]*entity.User, error) {
+func (m *MockUserUsecase) GetAllUsers(c echo.Context) ([]*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllUsers", ctx)
+	ret := m.ctrl.Call(m, "GetAllUsers", c)
 	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAllUsers indicates an expected call of GetAllUsers.
-func (mr *MockUserUsecaseMockRecorder) GetAllUsers(ctx interface{}) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) GetAllUsers(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserUsecase)(nil).GetAllUsers), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockUserUsecase)(nil).GetAllUsers), c)
 }
 
 // GetUser mocks base method.
-func (m *MockUserUsecase) GetUser(ctx context.Context, id string) (*entity.User, error) {
+func (m *MockUserUsecase) GetUser(c echo.Context, id string) (*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", ctx, id)
+	ret := m.ctrl.Call(m, "GetUser", c, id)
 	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUser indicates an expected call of GetUser.
-func (mr *MockUserUsecaseMockRecorder) GetUser(ctx, id interface{}) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) GetUser(c, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserUsecase)(nil).GetUser), ctx, id)
-}
-
-// SignIn mocks base method.
-func (m *MockUserUsecase) SignIn(ctx context.Context, idToken string) (*entity.User, *http.Cookie, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignIn", ctx, idToken)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(*http.Cookie)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// SignIn indicates an expected call of SignIn.
-func (mr *MockUserUsecaseMockRecorder) SignIn(ctx, idToken interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignIn", reflect.TypeOf((*MockUserUsecase)(nil).SignIn), ctx, idToken)
-}
-
-// SignUp mocks base method.
-func (m *MockUserUsecase) SignUp(ctx context.Context, idToken, name, email string) (*entity.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignUp", ctx, idToken, name, email)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SignUp indicates an expected call of SignUp.
-func (mr *MockUserUsecaseMockRecorder) SignUp(ctx, idToken, name, email interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignUp", reflect.TypeOf((*MockUserUsecase)(nil).SignUp), ctx, idToken, name, email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserUsecase)(nil).GetUser), c, id)
 }
 
 // UpdateUser mocks base method.
-func (m *MockUserUsecase) UpdateUser(ctx context.Context, id, name, email string) (*entity.User, error) {
+func (m *MockUserUsecase) UpdateUser(c echo.Context, id, name, email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", ctx, id, name, email)
+	ret := m.ctrl.Call(m, "UpdateUser", c, id, name, email)
 	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockUserUsecaseMockRecorder) UpdateUser(ctx, id, name, email interface{}) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) UpdateUser(c, id, name, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserUsecase)(nil).UpdateUser), ctx, id, name, email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserUsecase)(nil).UpdateUser), c, id, name, email)
 }
