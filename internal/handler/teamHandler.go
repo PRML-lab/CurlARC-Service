@@ -429,3 +429,43 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 		})
 	}
 }
+
+// GetTeamDetails retrieves detailed information about a team.
+// @Summary Get team details
+// @Description Retrieves detailed information about a specific team
+// @Tags Teams
+// @Param teamId path string true "Team ID"
+// @Produce json
+// @Success 200 {object} response.SuccessResponse{data=response.Team}
+// @Failure 500 {object} response.ErrorResponse
+// @Router /teams/{teamId}/detail [get]
+func (h *TeamHandler) GetTeamDetails() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		teamId := c.Param("teamId")
+
+		team, err := h.teamUsecase.GetDetailsByTeamId(teamId)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		responseTeam := response.Team{
+			Id:   team.GetId().Value(),
+			Name: team.GetName(),
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data: struct {
+				Team response.Team `json:"team"`
+			}{
+				Team: responseTeam,
+			},
+		})
+	}
+}

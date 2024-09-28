@@ -21,6 +21,7 @@ type TeamUsecase interface {
 	GetTeamsByUserId(userId string) ([]*entity.Team, error)
 	GetInvitedTeams(userId string) ([]*entity.Team, error)
 	GetMembersByTeamId(teamId string) ([]*entity.User, error)
+	GetDetailsByTeamId(teamId string) (*entity.Team, error)
 }
 
 type teamUsecase struct {
@@ -247,4 +248,12 @@ func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*entity.User, e
 	}
 
 	return users, nil
+}
+
+func (usecase *teamUsecase) GetDetailsByTeamId(teamId string) (*entity.Team, error) {
+	teams, err := usecase.teamRepo.FindById(teamId)
+	if err != nil {
+		return nil, err
+	}
+	return teams, nil
 }
