@@ -5,6 +5,7 @@ import (
 	"CurlARC/internal/handler/request"
 	"CurlARC/internal/handler/response"
 	"CurlARC/internal/usecase"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -151,12 +152,24 @@ func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
 			})
 		}
 
+		res := response.Record{
+			Id:            record.GetId().Value(),
+			TeamId:        record.GetTeamId(),
+			Result:        record.GetResult(),
+			EnemyTeamName: record.GetEnemyTeamName(),
+			Place:         record.GetPlace(),
+			Date:          record.GetDate(),
+			EndsData:      record.GetEndsDataAsJSON(),
+			IsPublic:      record.IsPublic(),
+		}
+		fmt.Printf("record: %+v\n", res)
+
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
-				Record entity.Record `json:"record"`
+				Record response.Record `json:"record"`
 			}{
-				Record: *record,
+				Record: res,
 			},
 		})
 	}

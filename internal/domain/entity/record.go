@@ -1,10 +1,12 @@
 package entity
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type Coordinate struct {
@@ -140,6 +142,16 @@ func (r *Record) GetDate() time.Time {
 
 func (r *Record) GetEndsData() []DataPerEnd {
 	return r.endsData
+}
+
+func (r *Record) GetEndsDataAsJSON() datatypes.JSON {
+	// JSONエンコードの処理
+	endsDataJSON, err := json.Marshal(r.endsData)
+	if err != nil {
+		return nil
+	}
+	// JSON文字列として返す
+	return endsDataJSON
 }
 
 func (r *Record) IsPublic() bool {

@@ -25,7 +25,7 @@ func (r *Record) FromDomain(record *entity.Record) {
 	r.EnemyTeamName = record.GetEnemyTeamName()
 	r.Place = record.GetPlace()
 	r.Date = record.GetDate()
-	r.EndsDataJSON = convertToJSON(record.GetEndsData())
+	r.EndsDataJSON = record.GetEndsDataAsJSON()
 	r.IsPublic = record.IsPublic()
 }
 
@@ -36,15 +36,6 @@ func (r *Record) ToDomain() *entity.Record {
 	record := entity.NewRecordFromDB(r.Id, r.TeamId, r.EnemyTeamName, r.Place, result, r.Date, endsData, r.IsPublic) // create a new Record
 
 	return record
-}
-
-// convert DataPerEnd to JSON
-func convertToJSON(data []entity.DataPerEnd) datatypes.JSON {
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
-	return jsonData
 }
 
 // convert JSON to DataPerEnd
