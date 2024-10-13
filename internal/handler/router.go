@@ -56,7 +56,7 @@ func InitRouting(
 	recordGroup.PATCH("/:recordId/append", recordHandler.AppendEndData())
 	recordGroup.GET("/:recordId/details", recordHandler.GetRecordDetailsByRecordId())
 	recordGroup.GET("/:teamId", recordHandler.GetRecordsByTeamId())
-	recordGroup.PATCH("/:recordId/:userId", recordHandler.UpdateRecord())
+	recordGroup.PATCH("/:recordId", recordHandler.UpdateRecord())
 	recordGroup.DELETE("/:recordId", recordHandler.DeleteRecord())
 	recordGroup.PATCH("/:recordId/userId/visibility", recordHandler.SetVisibility())
 
