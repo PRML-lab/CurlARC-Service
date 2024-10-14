@@ -49,6 +49,7 @@ func (u *recordUsecase) CreateRecord(userId, teamId, enemyTeamName, place string
 	record, err := entity.NewRecord(
 		teamId,
 		entity.WithEnemyTeamName(enemyTeamName),
+		entity.WithResult(result),
 		entity.WithPlace(place),
 		entity.WithDate(date),
 	)

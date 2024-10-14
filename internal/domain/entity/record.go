@@ -64,6 +64,12 @@ func WithEnemyTeamName(name string) RecordOption {
 	}
 }
 
+func WithResult(result Result) RecordOption {
+	return func(r *Record) error {
+		return r.SetResult(result)
+	}
+}
+
 func WithPlace(place string) RecordOption {
 	return func(r *Record) error {
 		return r.SetPlace(place)
@@ -180,6 +186,11 @@ func (r *Record) IsPublic() bool {
 
 func (r *Record) SetEnemyTeamName(name string) error {
 	r.enemyTeamName = name
+	return nil
+}
+
+func (r *Record) SetResult(result Result) error {
+	r.result = result
 	return nil
 }
 
