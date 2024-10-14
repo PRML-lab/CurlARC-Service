@@ -4,12 +4,7 @@ on:
     branches:
       - develop
       - main
-    paths:
-      - .github/workflows/ci-atlas.yaml
-      - 'migrations/*'
   pull_request:
-    paths:
-      - 'migrations/*'
     branches:
       - develop
       - main
