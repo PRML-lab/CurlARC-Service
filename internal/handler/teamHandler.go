@@ -148,7 +148,7 @@ func (h *TeamHandler) GetInvitedTeams() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, response.SuccessResponse{
 			Status: "success",
 			Data: struct {
-				Teams []response.Team
+				Teams []response.Team `json:"teams"`
 			}{
 				Teams: responseTeams,
 			},

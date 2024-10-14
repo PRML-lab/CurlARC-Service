@@ -3,12 +3,11 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - .github/workflows/ci-atlas.yaml
-      - 'migrations/*'
+      - main
   pull_request:
-    paths:
-      - 'migrations/*'
+    branches:
+      - develop
+      - main
 # Permissions to write comments on the pull request.
 permissions:
   contents: read

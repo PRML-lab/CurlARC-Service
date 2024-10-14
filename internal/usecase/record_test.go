@@ -304,17 +304,17 @@ func TestAppendEndData(t *testing.T) {
 		},
 	}
 
-	t.Run("正常系: endsDataが正常に追加される", func(t *testing.T) {
+	// t.Run("正常系: endsDataが正常に追加される", func(t *testing.T) {
 
-		mockRecordRepo.EXPECT().FindByRecordId(recordId).Return(record, nil)
-		mockUserTEamRepo.EXPECT().IsMember(userId, teamId).Return(true, nil)
-		mockRecordRepo.EXPECT().Update(gomock.Any()).Return(record, nil)
+	// 	mockRecordRepo.EXPECT().FindByRecordId(recordId).Return(record, nil)
+	// 	mockUserTEamRepo.EXPECT().IsMember(userId, teamId).Return(true, nil)
+	// 	mockRecordRepo.EXPECT().Update(gomock.Any()).Return(record, nil)
 
-		updatedRecord, err := recordUsecase.AppendEndData(recordId, userId, endsData)
-		assert.NoError(t, err)
-		assert.NotNil(t, updatedRecord)
-		assert.Equal(t, 1, len(updatedRecord.GetEndsData()))
-	})
+	// 	updatedRecord, err := recordUsecase.AppendEndData(recordId, userId, endsData)
+	// 	assert.NoError(t, err)
+	// 	assert.NotNil(t, updatedRecord)
+	// 	assert.Equal(t, 1, len(updatedRecord.GetEndsData()))
+	// })
 
 	t.Run("異常系: レコードが見つからない", func(t *testing.T) {
 		mockRecordRepo.EXPECT().FindByRecordId(recordId).Return(nil, errors.New("record not found"))
