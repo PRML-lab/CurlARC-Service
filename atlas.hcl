@@ -31,7 +31,7 @@ env "local" {
 }
 
 env "prod" {
-  url = "postgres://app:oEq8ZM3eWfFL@ep-raspy-block-a1riz8er.ap-southeast-1.pg.koyeb.app/curlarc-db"
+  url = "postgres://postgres:EbmU6Q0LbRbe0LV@localhost:5432?sslmode=disable"
   migration {
     dir = "atlas://curlarc"
   }
