@@ -85,26 +85,8 @@ func WithDate(date time.Time) RecordOption {
 func NewRecord(teamId string, options ...RecordOption) (*Record, error) {
 	recordId := NewRecordId(uuid.New().String())
 	record := &Record{
-		id:       *recordId,
-		teamId:   teamId,
-		endsData: make([]DataPerEnd, 11),
-	}
-	for i := range record.endsData {
-		record.endsData[i] = DataPerEnd{
-			Score: 0,
-			Shots: make([]Shot, 8),
-		}
-		for j := range record.endsData[i].Shots {
-			record.endsData[i].Shots[j] = Shot{
-				Type:        "",
-				SuccessRate: 0.0,
-				Shooter:     "",
-				Stones: Stones{
-					FriendStones: []Coordinate{},
-					EnemyStones:  []Coordinate{},
-				},
-			}
-		}
+		id:     *recordId,
+		teamId: teamId,
 	}
 
 	for _, opt := range options {
