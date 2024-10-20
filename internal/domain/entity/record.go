@@ -112,11 +112,11 @@ func NewRecordFromDB(id, teamId, enemyTeamName, place string, result Result, dat
 }
 
 func (r *Record) ValidateEndsData(endsData []DataPerEnd) error {
-	for _, end := range endsData {
-		if len(end.Shots) != 8 {
-			return errors.New("each end must contains 8 shots")
-		}
-	}
+	// for _, end := range endsData {
+	// 	if len(end.Shots) != 8 {
+	// 		return errors.New("each end must contains 8 shots")
+	// 	}
+	// }
 	return nil
 }
 
