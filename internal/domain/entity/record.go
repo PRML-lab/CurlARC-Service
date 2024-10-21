@@ -52,6 +52,7 @@ type Record struct {
 	place         string
 	date          time.Time
 	endsData      []DataPerEnd
+	isFirst       bool
 	isPublic      bool
 }
 
@@ -98,7 +99,7 @@ func NewRecord(teamId string, options ...RecordOption) (*Record, error) {
 	return record, nil
 }
 
-func NewRecordFromDB(id, teamId, enemyTeamName, place string, result Result, date time.Time, endsData []DataPerEnd, isPublic bool) *Record {
+func NewRecordFromDB(id, teamId, enemyTeamName, place string, result Result, date time.Time, endsData []DataPerEnd, isFirst, isPublic bool) *Record {
 	return &Record{
 		id:            *NewRecordId(id),
 		teamId:        teamId,
@@ -107,6 +108,7 @@ func NewRecordFromDB(id, teamId, enemyTeamName, place string, result Result, dat
 		place:         place,
 		date:          date,
 		endsData:      endsData,
+		isFirst:       isFirst,
 		isPublic:      isPublic,
 	}
 }
@@ -160,6 +162,10 @@ func (r *Record) GetEndsDataAsJSON() datatypes.JSON {
 	return endsDataJSON
 }
 
+func (r *Record) GetIsFirst() bool {
+	return r.isFirst
+}
+
 func (r *Record) IsPublic() bool {
 	return r.isPublic
 }
@@ -197,6 +203,10 @@ func (r *Record) SetEndsData(endsData []DataPerEnd) error {
 	}
 	r.endsData = endsData
 	return nil
+}
+
+func (r *Record) SetIsFirst(isFirst bool) {
+	r.isFirst = isFirst
 }
 
 func (r *Record) SetVisibility(isPublic bool) {

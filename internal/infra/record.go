@@ -26,6 +26,7 @@ func (r *Record) FromDomain(record *entity.Record) {
 	r.Place = record.GetPlace()
 	r.Date = record.GetDate()
 	r.EndsDataJSON = record.GetEndsDataAsJSON()
+	r.IsFirst = record.GetIsFirst()
 	r.IsPublic = record.IsPublic()
 }
 
@@ -33,7 +34,17 @@ func (r *Record) ToDomain() *entity.Record {
 	result := entity.Result(r.Result)           // convert string to Result
 	endsData := convertFromJSON(r.EndsDataJSON) // convert JSON to []DataPerEnd
 
-	record := entity.NewRecordFromDB(r.Id, r.TeamId, r.EnemyTeamName, r.Place, result, r.Date, endsData, r.IsPublic) // create a new Record
+	record := entity.NewRecordFromDB(
+		r.Id,
+		r.TeamId,
+		r.EnemyTeamName,
+		r.Place,
+		result,
+		r.Date,
+		endsData,
+		r.IsFirst,
+		r.IsPublic,
+	) // create a new Record
 
 	return record
 }
@@ -73,7 +84,8 @@ func (r *RecordRepository) FindByRecordId(recordId string) (*entity.Record, erro
 
 func (r *RecordRepository) FindIndicesByTeamId(teamId string) (*[]response.RecordIndex, error) {
 	var dbRecords []Record
-	if err := r.Conn.Select("id", "result", "enemy_team_name", "place", "date").Where("team_id = ?", teamId).Find(&dbRecords).Error; err != nil {
+	if err := r.Conn.Select(
+		"id", "result", "enemy_team_name", "place", "date").Where("team_id = ?", teamId).Find(&dbRecords).Error; err != nil {
 		return nil, err
 	}
 

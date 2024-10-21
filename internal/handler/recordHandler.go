@@ -171,6 +171,7 @@ func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
 			Place:         record.GetPlace(),
 			Date:          record.GetDate(),
 			EndsData:      record.GetEndsDataAsJSON(),
+			IsFirst:       record.GetIsFirst(),
 			IsPublic:      record.IsPublic(),
 		}
 
@@ -259,6 +260,8 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 			*req.Place,
 			*req.EndsData,
 			*req.Date,
+			*req.IsFirst,
+			*req.IsPublic,
 		)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
