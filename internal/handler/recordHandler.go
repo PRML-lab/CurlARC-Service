@@ -259,6 +259,8 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 			*req.Place,
 			*req.EndsData,
 			*req.Date,
+			*req.IsFirst,
+			*req.IsPublic,
 		)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
