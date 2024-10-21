@@ -36,6 +36,7 @@ type Record struct {
 	Place         string         `gorm:"type:varchar(255)"`
 	Date          time.Time      `gorm:"type:timestamp"`
 	EndsDataJSON  datatypes.JSON `gorm:"type:json"`
+	IsFirst       bool           `gorm:"type:boolean"`
 	IsPublic      bool           `gorm:"type:boolean"`
 	Team          Team           `gorm:"foreignKey:TeamId;constraint:OnDelete:CASCADE;"`
 }
