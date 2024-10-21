@@ -5,7 +5,6 @@ import (
 	"CurlARC/internal/domain/repository"
 	"CurlARC/internal/handler/response"
 	"encoding/json"
-	"fmt"
 
 	"gorm.io/datatypes"
 )
@@ -80,7 +79,6 @@ func (r *RecordRepository) FindByRecordId(recordId string) (*entity.Record, erro
 	if err := r.Conn.First(&dbRecord, "id = ?", recordId).Error; err != nil {
 		return nil, err
 	}
-	fmt.Println(dbRecord.IsFirst)
 	return dbRecord.ToDomain(), nil
 }
 
