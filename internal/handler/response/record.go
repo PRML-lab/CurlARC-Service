@@ -23,6 +23,7 @@ type Record struct {
 	Place         string         `json:"place"`
 	Date          time.Time      `json:"date"`
 	EndsData      datatypes.JSON `json:"ends_data"`
+	IsFirst       bool           `json:"is_first"`
 	IsPublic      bool           `json:"is_public"`
 }
 
