@@ -43,6 +43,7 @@ func InitRouting(
 	teamGroup.POST("/", teamHandler.CreateTeam())
 	teamGroup.GET("/", teamHandler.GetAllTeams())
 	teamGroup.GET("/:teamId/members", teamHandler.GetMembers())
+	teamGroup.GET("/:teamId/invited", teamHandler.GetInvitedUsers())
 	teamGroup.GET("/:teamId/details", teamHandler.GetTeamDetails())
 	teamGroup.PATCH("/:teamId", teamHandler.UpdateTeam())
 	teamGroup.DELETE("/:teamId", teamHandler.DeleteTeam())
@@ -68,4 +69,5 @@ func InitRouting(
 	debug.GET("/teams/:teamId", teamHandler.GetMembers())
 	debug.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
 	debug.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
+
 }
