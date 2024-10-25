@@ -36,18 +36,19 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 }
 
 // Authorize mocks base method.
-func (m *MockUserUsecase) Authorize(c echo.Context, name, email string) (*entity.User, error) {
+func (m *MockUserUsecase) Authorize(c echo.Context, idToken string) (*entity.User, *string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Authorize", c, name, email)
+	ret := m.ctrl.Call(m, "Authorize", c, idToken)
 	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(*string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // Authorize indicates an expected call of Authorize.
-func (mr *MockUserUsecaseMockRecorder) Authorize(c, name, email interface{}) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) Authorize(c, idToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockUserUsecase)(nil).Authorize), c, name, email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockUserUsecase)(nil).Authorize), c, idToken)
 }
 
 // DeleteUser mocks base method.

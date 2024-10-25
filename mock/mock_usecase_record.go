@@ -141,16 +141,16 @@ func (mr *MockRecordUsecaseMockRecorder) SetVisibility(recordId, userId, isPubli
 }
 
 // UpdateRecord mocks base method.
-func (m *MockRecordUsecase) UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time) (*entity.Record, error) {
+func (m *MockRecordUsecase) UpdateRecord(recordId, userId, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time, isFirst, isPublic bool) (*entity.Record, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateRecord", recordId, userId, enemyTeamName, place, endsData, date)
+	ret := m.ctrl.Call(m, "UpdateRecord", recordId, userId, enemyTeamName, place, endsData, date, isFirst, isPublic)
 	ret0, _ := ret[0].(*entity.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateRecord indicates an expected call of UpdateRecord.
-func (mr *MockRecordUsecaseMockRecorder) UpdateRecord(recordId, userId, enemyTeamName, place, endsData, date interface{}) *gomock.Call {
+func (mr *MockRecordUsecaseMockRecorder) UpdateRecord(recordId, userId, enemyTeamName, place, endsData, date, isFirst, isPublic interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRecord", reflect.TypeOf((*MockRecordUsecase)(nil).UpdateRecord), recordId, userId, enemyTeamName, place, endsData, date)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRecord", reflect.TypeOf((*MockRecordUsecase)(nil).UpdateRecord), recordId, userId, enemyTeamName, place, endsData, date, isFirst, isPublic)
 }
