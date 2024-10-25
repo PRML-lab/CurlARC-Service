@@ -18,10 +18,12 @@ type TeamUsecase interface {
 	InviteUsers(teamId, userId string, targetUserEmails []string) error
 	AcceptInvitation(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
+	GetDetailsByTeamId(teamId string) (*entity.Team, error)
+	GetMembersByTeamId(teamId string) ([]*entity.User, error)
+	GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error)
+
 	GetTeamsByUserId(userId string) ([]*entity.Team, error)
 	GetInvitedTeams(userId string) ([]*entity.Team, error)
-	GetMembersByTeamId(teamId string) ([]*entity.User, error)
-	GetDetailsByTeamId(teamId string) (*entity.Team, error)
 }
 
 type teamUsecase struct {
@@ -135,7 +137,6 @@ func (usecase *teamUsecase) InviteUsers(teamId, userId string, targetUserEmails 
 			continue
 		}
 
-		// Add user to team with "INVITED" state
 		userTeam := entity.NewUserTeam(*entity.NewUserId(targetUser.GetId().Value()), *entity.NewTeamId(teamId), entity.Invited)
 		_, err = usecase.userTeamRepo.Save(userTeam)
 		if err != nil {
@@ -165,7 +166,7 @@ func (usecase *teamUsecase) AcceptInvitation(teamId, userId string) error {
 		return err
 	}
 
-	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *entity.NewTeamId(teamId), "MEMBER")
+	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *entity.NewTeamId(teamId), entity.Member)
 
 	// Update state of user-team
 	_, err = usecase.userTeamRepo.UpdateState(userTeam)
@@ -239,6 +240,35 @@ func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*entity.User, e
 	}
 
 	var users []*entity.User
+	for _, userId := range userIds {
+		user, err := usecase.userRepo.FindById(userId)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (usecase *teamUsecase) GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error) {
+	// Validate team existence
+	_, err := usecase.teamRepo.FindById(teamId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid teamId: %w", err)
+	}
+
+	userIds, err := usecase.userTeamRepo.FindInvitedUsersByTeamId(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(userIds) == 0 {
+		return []*entity.User{}, nil
+	}
+
+	users := make([]*entity.User, 0, len(userIds))
+
 	for _, userId := range userIds {
 		user, err := usecase.userRepo.FindById(userId)
 		if err != nil {

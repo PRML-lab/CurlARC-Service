@@ -60,7 +60,23 @@ func (userTeamRepo *UserTeamRepository) FindUsersByTeamId(teamId string) ([]stri
 
 func (userTeamRepo *UserTeamRepository) FindMembersByTeamId(teamId string) ([]string, error) {
 	var userTeams []*UserTeam
-	result := userTeamRepo.SqlHandler.Conn.Where("team_id = ? AND state = ?", teamId, "MEMBER").Find(&userTeams)
+	result := userTeamRepo.SqlHandler.Conn.Where("team_id = ? AND state = ?", teamId, entity.Member).Find(&userTeams)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var userIds []string
+	for _, userTeam := range userTeams {
+		userIds = append(userIds, userTeam.UserId)
+	}
+
+	return userIds, nil
+}
+
+func (userTeamRepo *UserTeamRepository) FindInvitedUsersByTeamId(teamId string) ([]string, error) {
+	var userTeams []*UserTeam
+	result := userTeamRepo.SqlHandler.Conn.Where("team_id = ? AND state = ?", teamId, entity.Invited).Find(&userTeams)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -76,7 +92,7 @@ func (userTeamRepo *UserTeamRepository) FindMembersByTeamId(teamId string) ([]st
 
 func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]string, error) {
 	var userTeams []*UserTeam
-	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, "MEMBER").Find(&userTeams)
+	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, entity.Member).Find(&userTeams)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -92,7 +108,7 @@ func (userTeamRepo *UserTeamRepository) FindTeamsByUserId(userId string) ([]stri
 
 func (userTeamRepo *UserTeamRepository) FindInvitedTeamsByUserId(userId string) ([]string, error) {
 	var userTeams []*UserTeam
-	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, "INVITED").Find(&userTeams)
+	result := userTeamRepo.SqlHandler.Conn.Where("user_id = ? AND state = ?", userId, entity.Invited).Find(&userTeams)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -145,5 +161,5 @@ func (userTeamRepo *UserTeamRepository) IsMember(userId, teamId string) (bool, e
 		return false, result.Error
 	}
 
-	return userTeam.State == "MEMBER", nil
+	return userTeam.State == string(entity.Member), nil
 }

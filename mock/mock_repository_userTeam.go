@@ -63,6 +63,21 @@ func (mr *MockUserTeamRepositoryMockRecorder) FindInvitedTeamsByUserId(userId in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindInvitedTeamsByUserId", reflect.TypeOf((*MockUserTeamRepository)(nil).FindInvitedTeamsByUserId), userId)
 }
 
+// FindInvitedUsersByTeamId mocks base method.
+func (m *MockUserTeamRepository) FindInvitedUsersByTeamId(teamId string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindInvitedUsersByTeamId", teamId)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindInvitedUsersByTeamId indicates an expected call of FindInvitedUsersByTeamId.
+func (mr *MockUserTeamRepositoryMockRecorder) FindInvitedUsersByTeamId(teamId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindInvitedUsersByTeamId", reflect.TypeOf((*MockUserTeamRepository)(nil).FindInvitedUsersByTeamId), teamId)
+}
+
 // FindMembersByTeamId mocks base method.
 func (m *MockUserTeamRepository) FindMembersByTeamId(teamId string) ([]string, error) {
 	m.ctrl.T.Helper()

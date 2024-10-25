@@ -92,6 +92,21 @@ func (mr *MockTeamUsecaseMockRecorder) GetAllTeams() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllTeams", reflect.TypeOf((*MockTeamUsecase)(nil).GetAllTeams))
 }
 
+// GetDetailsByTeamId mocks base method.
+func (m *MockTeamUsecase) GetDetailsByTeamId(teamId string) (*entity.Team, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDetailsByTeamId", teamId)
+	ret0, _ := ret[0].(*entity.Team)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDetailsByTeamId indicates an expected call of GetDetailsByTeamId.
+func (mr *MockTeamUsecaseMockRecorder) GetDetailsByTeamId(teamId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsByTeamId", reflect.TypeOf((*MockTeamUsecase)(nil).GetDetailsByTeamId), teamId)
+}
+
 // GetInvitedTeams mocks base method.
 func (m *MockTeamUsecase) GetInvitedTeams(userId string) ([]*entity.Team, error) {
 	m.ctrl.T.Helper()
@@ -105,6 +120,21 @@ func (m *MockTeamUsecase) GetInvitedTeams(userId string) ([]*entity.Team, error)
 func (mr *MockTeamUsecaseMockRecorder) GetInvitedTeams(userId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInvitedTeams", reflect.TypeOf((*MockTeamUsecase)(nil).GetInvitedTeams), userId)
+}
+
+// GetInvitedUsersByTeamId mocks base method.
+func (m *MockTeamUsecase) GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetInvitedUsersByTeamId", teamId)
+	ret0, _ := ret[0].([]*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInvitedUsersByTeamId indicates an expected call of GetInvitedUsersByTeamId.
+func (mr *MockTeamUsecaseMockRecorder) GetInvitedUsersByTeamId(teamId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInvitedUsersByTeamId", reflect.TypeOf((*MockTeamUsecase)(nil).GetInvitedUsersByTeamId), teamId)
 }
 
 // GetMembersByTeamId mocks base method.
