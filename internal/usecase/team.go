@@ -137,7 +137,6 @@ func (usecase *teamUsecase) InviteUsers(teamId, userId string, targetUserEmails 
 			continue
 		}
 
-		// Add user to team with "INVITED" state
 		userTeam := entity.NewUserTeam(*entity.NewUserId(targetUser.GetId().Value()), *entity.NewTeamId(teamId), entity.Invited)
 		_, err = usecase.userTeamRepo.Save(userTeam)
 		if err != nil {
@@ -167,7 +166,7 @@ func (usecase *teamUsecase) AcceptInvitation(teamId, userId string) error {
 		return err
 	}
 
-	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *entity.NewTeamId(teamId), "MEMBER")
+	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *entity.NewTeamId(teamId), entity.Member)
 
 	// Update state of user-team
 	_, err = usecase.userTeamRepo.UpdateState(userTeam)
