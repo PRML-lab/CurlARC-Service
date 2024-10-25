@@ -252,12 +252,23 @@ func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*entity.User, e
 }
 
 func (usecase *teamUsecase) GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error) {
+	// Validate team existence
+	_, err := usecase.teamRepo.FindById(teamId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid teamId: %w", err)
+	}
+
 	userIds, err := usecase.userTeamRepo.FindInvitedUsersByTeamId(teamId)
 	if err != nil {
 		return nil, err
 	}
 
-	var users []*entity.User
+	if len(userIds) == 0 {
+		return []*entity.User{}, nil
+	}
+
+	users := make([]*entity.User, 0, len(userIds))
+
 	for _, userId := range userIds {
 		user, err := usecase.userRepo.FindById(userId)
 		if err != nil {
