@@ -18,10 +18,12 @@ type TeamUsecase interface {
 	InviteUsers(teamId, userId string, targetUserEmails []string) error
 	AcceptInvitation(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
+	GetDetailsByTeamId(teamId string) (*entity.Team, error)
+	GetMembersByTeamId(teamId string) ([]*entity.User, error)
+	GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error)
+
 	GetTeamsByUserId(userId string) ([]*entity.Team, error)
 	GetInvitedTeams(userId string) ([]*entity.Team, error)
-	GetMembersByTeamId(teamId string) ([]*entity.User, error)
-	GetDetailsByTeamId(teamId string) (*entity.Team, error)
 }
 
 type teamUsecase struct {
@@ -234,6 +236,24 @@ func (usecase *teamUsecase) GetInvitedTeams(userId string) ([]*entity.Team, erro
 
 func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*entity.User, error) {
 	userIds, err := usecase.userTeamRepo.FindMembersByTeamId(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*entity.User
+	for _, userId := range userIds {
+		user, err := usecase.userRepo.FindById(userId)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (usecase *teamUsecase) GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error) {
+	userIds, err := usecase.userTeamRepo.FindInvitedUsersByTeamId(teamId)
 	if err != nil {
 		return nil, err
 	}

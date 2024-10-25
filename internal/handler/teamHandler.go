@@ -430,6 +430,41 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 	}
 }
 
+func (h *TeamHandler) GetInvitedUsers() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		teamID := c.Param("teamId")
+
+		users, err := h.teamUsecase.GetInvitedUsersByTeamId(teamID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, response.ErrorResponse{
+				Status: "error",
+				Error: response.ErrorDetail{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				},
+			})
+		}
+
+		responseUsers := make([]response.User, 0, len(users))
+		for _, user := range users {
+			responseUsers = append(responseUsers, response.User{
+				Id:    user.GetId().Value(),
+				Name:  user.GetName(),
+				Email: user.GetEmail(),
+			})
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessResponse{
+			Status: "success",
+			Data: struct {
+				Users []response.User `json:"users"`
+			}{
+				Users: responseUsers,
+			},
+		})
+	}
+}
+
 // GetTeamDetails retrieves detailed information about a team.
 // @Summary Get team details
 // @Description Retrieves detailed information about a specific team
