@@ -1,8 +1,9 @@
 {
-  "cSpell.words": [
-    "gorm",
-    "signin",
-    "signup",
-    "usecase"
-  ]
+  "cSpell.words": ["gorm", "signin", "signup", "usecase"],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.rulers": [80],
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
 }

@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"CurlARC/internal/domain/model"
+	"CurlARC/internal/domain/entity"
 	"CurlARC/internal/domain/repository"
 	"errors"
 	"fmt"
@@ -9,18 +9,21 @@ import (
 
 type TeamUsecase interface {
 	// CRUD
-	CreateTeam(name, userId string) error
-	GetAllTeams() ([]*model.Team, error)
-	UpdateTeam(id, name string) error
+	CreateTeam(name, userId string) (*entity.Team, error)
+	GetAllTeams() ([]*entity.Team, error)
+	UpdateTeam(id, name string) (*entity.Team, error)
 	DeleteTeam(id string) error
 
 	// User関連
 	InviteUsers(teamId, userId string, targetUserEmails []string) error
 	AcceptInvitation(teamId, userId string) error
 	RemoveMember(teamId, userId string) error
-	GetTeamsByUserId(userId string) ([]*model.Team, error)
-	GetInvitedTeams(userId string) ([]*model.Team, error)
-	GetMembersByTeamId(teamId string) ([]*model.User, error)
+	GetDetailsByTeamId(teamId string) (*entity.Team, error)
+	GetMembersByTeamId(teamId string) ([]*entity.User, error)
+	GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error)
+
+	GetTeamsByUserId(userId string) ([]*entity.Team, error)
+	GetInvitedTeams(userId string) ([]*entity.Team, error)
 }
 
 type teamUsecase struct {
@@ -33,27 +36,30 @@ func NewTeamUsecase(teamRepo repository.TeamRepository, userRepo repository.User
 	return &teamUsecase{teamRepo: teamRepo, userRepo: userRepo, userTeamRepo: userTeamRepo}
 }
 
-func (usecase *teamUsecase) CreateTeam(name, userId string) error {
-	team := &model.Team{Name: name}
-	createdTeam, err := usecase.teamRepo.Save(team)
+func (usecase *teamUsecase) CreateTeam(name, userId string) (*entity.Team, error) {
+	// Check existence of user
+	_, err := usecase.userRepo.FindById(userId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// user-team tableに保存
-	_, err = usecase.userRepo.FindById(userId)
-	if err != nil {
-		return err
-	}
+	// Create entities
+	team := entity.NewTeam(name)
+	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *team.GetId(), entity.Member)
 
-	err = usecase.userTeamRepo.Save(userId, createdTeam.Id, "MEMBER")
+	// 永続化
+	savedTeam, err := usecase.teamRepo.Save(team)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	_, err = usecase.userTeamRepo.Save(userTeam)
+	if err != nil {
+		return nil, err
+	}
+	return savedTeam, nil
 }
 
-func (usecase *teamUsecase) GetAllTeams() ([]*model.Team, error) {
+func (usecase *teamUsecase) GetAllTeams() ([]*entity.Team, error) {
 	teams, err := usecase.teamRepo.FindAll()
 	if err != nil {
 		return nil, err
@@ -61,29 +67,29 @@ func (usecase *teamUsecase) GetAllTeams() ([]*model.Team, error) {
 	return teams, nil
 }
 
-func (usecase *teamUsecase) GetTeam(id string) (*model.Team, error) {
+func (usecase *teamUsecase) UpdateTeam(id, name string) (*entity.Team, error) {
 	team, err := usecase.teamRepo.FindById(id)
 	if err != nil {
 		return nil, err
 	}
-	return team, nil
-}
 
-func (usecase *teamUsecase) UpdateTeam(id, name string) error {
-	team, err := usecase.teamRepo.FindById(id)
+	team.SetName(name)
+	updatedTeam, err := usecase.teamRepo.Update(team)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	team.Name = name
-	err = usecase.teamRepo.Update(team)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return updatedTeam, nil
 }
 
 func (usecase *teamUsecase) DeleteTeam(id string) error {
-	err := usecase.teamRepo.Delete(id)
+	// Check existence of team
+	_, err := usecase.teamRepo.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	err = usecase.teamRepo.Delete(id)
 	if err != nil {
 		return err
 	}
@@ -94,56 +100,56 @@ func (usecase *teamUsecase) InviteUsers(teamId, userId string, targetUserEmails 
 	// Check existence of team and user
 	_, err := usecase.teamRepo.FindById(teamId)
 	if err != nil {
-			return err
+		return err
 	}
 	_, err = usecase.userRepo.FindById(userId)
 	if err != nil {
-			return err
+		return err
 	}
 
 	// Check if the inviter is a member of the team
 	isMember, err := usecase.userTeamRepo.IsMember(userId, teamId)
 	if err != nil {
-			return err
+		return err
 	}
 	if !isMember {
-			return errors.New("inviter is not a member of the team")
+		return errors.New("inviter is not a member of the team")
 	}
 
 	var inviteErrors []error
 
 	for _, targetEmail := range targetUserEmails {
-			// Check existence of target user
-			targetUser, err := usecase.userRepo.FindByEmail(targetEmail)
-			if err != nil {
-					inviteErrors = append(inviteErrors, fmt.Errorf("target user %s not found: %v", targetUser.Email, err))
-					continue
-			}
+		// Check existence of target user
+		targetUser, err := usecase.userRepo.FindByEmail(targetEmail)
+		if err != nil {
+			inviteErrors = append(inviteErrors, fmt.Errorf("target user %s not found: %v", targetEmail, err))
+			continue
+		}
 
-			// Check if the target user is already a member of the team
-			isMember, err = usecase.userTeamRepo.IsMember(targetUser.Id, teamId)
-			if err != nil {
-					inviteErrors = append(inviteErrors, fmt.Errorf("error checking membership for user %s: %v", targetUser.Email, err))
-					continue
-			}
-			if isMember {
-					inviteErrors = append(inviteErrors, fmt.Errorf("target user %s is already a member of the team", targetUser.Email))
-					continue
-			}
+		// Check if the target user is already a member of the team
+		isMember, err = usecase.userTeamRepo.IsMember(targetUser.GetId().Value(), teamId)
+		if err != nil {
+			inviteErrors = append(inviteErrors, fmt.Errorf("error checking membership for user %s: %v", targetEmail, err))
+			continue
+		}
+		if isMember {
+			inviteErrors = append(inviteErrors, fmt.Errorf("target user %s is already a member of the team", targetEmail))
+			continue
+		}
 
-			// Add user to team with "INVITED" state
-			err = usecase.userTeamRepo.Save(targetUser.Id, teamId, "INVITED")
-			if err != nil {
-					inviteErrors = append(inviteErrors, fmt.Errorf("error inviting user %s: %v", targetUser.Email, err))
-					continue
-			}
+		userTeam := entity.NewUserTeam(*entity.NewUserId(targetUser.GetId().Value()), *entity.NewTeamId(teamId), entity.Invited)
+		_, err = usecase.userTeamRepo.Save(userTeam)
+		if err != nil {
+			inviteErrors = append(inviteErrors, fmt.Errorf("error inviting user %s: %v", targetEmail, err))
+			continue
+		}
 
-			// Send invitation email
-			// Note: Add email sending logic here if needed
+		// Send invitation email
+		// Note: Add email sending logic here if needed
 	}
 
 	if len(inviteErrors) > 0 {
-			return fmt.Errorf("one or more invitations failed: %v", inviteErrors)
+		return fmt.Errorf("one or more invitations failed: %v", inviteErrors)
 	}
 
 	return nil
@@ -160,8 +166,10 @@ func (usecase *teamUsecase) AcceptInvitation(teamId, userId string) error {
 		return err
 	}
 
+	userTeam := entity.NewUserTeam(*entity.NewUserId(userId), *entity.NewTeamId(teamId), entity.Member)
+
 	// Update state of user-team
-	err = usecase.userTeamRepo.UpdateState(userId, teamId)
+	_, err = usecase.userTeamRepo.UpdateState(userTeam)
 	if err != nil {
 		return err
 	}
@@ -189,13 +197,13 @@ func (usecase *teamUsecase) RemoveMember(teamId, userId string) error {
 	return nil
 }
 
-func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*model.Team, error) {
+func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*entity.Team, error) {
 	teamIds, err := usecase.userTeamRepo.FindTeamsByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	var teams []*model.Team
+	var teams []*entity.Team
 	for _, teamId := range teamIds {
 		team, err := usecase.teamRepo.FindById(teamId)
 		if err != nil {
@@ -207,13 +215,13 @@ func (usecase *teamUsecase) GetTeamsByUserId(userId string) ([]*model.Team, erro
 	return teams, nil
 }
 
-func (usecase *teamUsecase) GetInvitedTeams(userId string) ([]*model.Team, error) {
+func (usecase *teamUsecase) GetInvitedTeams(userId string) ([]*entity.Team, error) {
 	teamIds, err := usecase.userTeamRepo.FindInvitedTeamsByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	var teams []*model.Team
+	var teams []*entity.Team
 	for _, teamId := range teamIds {
 		team, err := usecase.teamRepo.FindById(teamId)
 		if err != nil {
@@ -225,13 +233,13 @@ func (usecase *teamUsecase) GetInvitedTeams(userId string) ([]*model.Team, error
 	return teams, nil
 }
 
-func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*model.User, error) {
+func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*entity.User, error) {
 	userIds, err := usecase.userTeamRepo.FindMembersByTeamId(teamId)
 	if err != nil {
 		return nil, err
 	}
 
-	var users []*model.User
+	var users []*entity.User
 	for _, userId := range userIds {
 		user, err := usecase.userRepo.FindById(userId)
 		if err != nil {
@@ -241,4 +249,41 @@ func (usecase *teamUsecase) GetMembersByTeamId(teamId string) ([]*model.User, er
 	}
 
 	return users, nil
+}
+
+func (usecase *teamUsecase) GetInvitedUsersByTeamId(teamId string) ([]*entity.User, error) {
+	// Validate team existence
+	_, err := usecase.teamRepo.FindById(teamId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid teamId: %w", err)
+	}
+
+	userIds, err := usecase.userTeamRepo.FindInvitedUsersByTeamId(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(userIds) == 0 {
+		return []*entity.User{}, nil
+	}
+
+	users := make([]*entity.User, 0, len(userIds))
+
+	for _, userId := range userIds {
+		user, err := usecase.userRepo.FindById(userId)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (usecase *teamUsecase) GetDetailsByTeamId(teamId string) (*entity.Team, error) {
+	teams, err := usecase.teamRepo.FindById(teamId)
+	if err != nil {
+		return nil, err
+	}
+	return teams, nil
 }

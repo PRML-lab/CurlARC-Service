@@ -22,8 +22,8 @@ func InitRouting(
 	})
 
 	// 認証が不要なエンドポイント
-	e.POST("/signup", userHandler.SignUp())
-	e.POST("/signin", userHandler.SignIn())
+	// e.POST("/signup", userHandler.SignUp())
+	e.POST("/authorize", userHandler.Authorize())
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// 認証が必要なルートにミドルウェアを適用
@@ -42,7 +42,9 @@ func InitRouting(
 	teamGroup := authGroup.Group("/teams")
 	teamGroup.POST("/", teamHandler.CreateTeam())
 	teamGroup.GET("/", teamHandler.GetAllTeams())
-	teamGroup.GET("/:teamId", teamHandler.GetMembers())
+	teamGroup.GET("/:teamId/members", teamHandler.GetMembers())
+	teamGroup.GET("/:teamId/invited", teamHandler.GetInvitedUsers())
+	teamGroup.GET("/:teamId/details", teamHandler.GetTeamDetails())
 	teamGroup.PATCH("/:teamId", teamHandler.UpdateTeam())
 	teamGroup.DELETE("/:teamId", teamHandler.DeleteTeam())
 	teamGroup.POST("/:teamId/invite", teamHandler.InviteUsers())
@@ -51,9 +53,11 @@ func InitRouting(
 
 	// レコード関連のエンドポイント
 	recordGroup := authGroup.Group("/records")
-	recordGroup.POST("/:teamId/:userId", recordHandler.CreateRecord())
-	recordGroup.GET("/:teamId", recordHandler.GetRecordByTeamId())
-	recordGroup.PATCH("/:recordId/:userId", recordHandler.UpdateRecord())
+	recordGroup.POST("/:teamId", recordHandler.CreateRecord())
+	recordGroup.PATCH("/:recordId/append", recordHandler.AppendEndData())
+	recordGroup.GET("/:recordId/details", recordHandler.GetRecordDetailsByRecordId())
+	recordGroup.GET("/:teamId", recordHandler.GetRecordsByTeamId())
+	recordGroup.PATCH("/:recordId", recordHandler.UpdateRecord())
 	recordGroup.DELETE("/:recordId", recordHandler.DeleteRecord())
 	recordGroup.PATCH("/:recordId/userId/visibility", recordHandler.SetVisibility())
 
@@ -65,4 +69,5 @@ func InitRouting(
 	debug.GET("/teams/:teamId", teamHandler.GetMembers())
 	debug.PATCH("/teams/:teamId/:userId", teamHandler.AcceptInvitation())
 	debug.DELETE("/teams/:teamId/:userId", teamHandler.RemoveMember())
+
 }
