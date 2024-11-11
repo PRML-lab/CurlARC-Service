@@ -256,6 +256,7 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 		updatedRecord, err := h.recordUsecase.UpdateRecord(
 			recordId,
 			userId,
+      *req.Result,
 			*req.EnemyTeamName,
 			*req.Place,
 			*req.EndsData,
