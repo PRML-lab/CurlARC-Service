@@ -52,7 +52,7 @@ type Record struct {
 	place         string
 	date          time.Time
 	endsData      []DataPerEnd
-  isRed         bool
+	isRed         bool
 	isFirst       bool
 	isPublic      bool
 }
@@ -109,7 +109,7 @@ func NewRecordFromDB(id, teamId, enemyTeamName, place string, result Result, dat
 		place:         place,
 		date:          date,
 		endsData:      endsData,
-    isRed:         isRed,
+		isRed:         isRed,
 		isFirst:       isFirst,
 		isPublic:      isPublic,
 	}
@@ -165,7 +165,7 @@ func (r *Record) GetEndsDataAsJSON() datatypes.JSON {
 }
 
 func (r *Record) GetIsRed() bool {
-  return r.isRed
+	return r.isRed
 }
 
 func (r *Record) GetIsFirst() bool {
@@ -212,7 +212,7 @@ func (r *Record) SetEndsData(endsData []DataPerEnd) error {
 }
 
 func (r *Record) SetIsRed(isRed bool) {
-  r.isRed = isRed
+	r.isRed = isRed
 }
 
 func (r *Record) SetIsFirst(isFirst bool) {

@@ -155,7 +155,7 @@ func (u *recordUsecase) UpdateRecord(recordId, userId string, result entity.Resu
 			return nil, err
 		}
 	}
-  newRecord.SetIsRed(isRed)
+	newRecord.SetIsRed(isRed)
 	newRecord.SetIsFirst(isFirst)
 	newRecord.SetVisibility(isPublic)
 
