@@ -26,6 +26,7 @@ func (r *Record) FromDomain(record *entity.Record) {
 	r.Place = record.GetPlace()
 	r.Date = record.GetDate()
 	r.EndsDataJSON = record.GetEndsDataAsJSON()
+  r.IsRed = record.GetIsRed()
 	r.IsFirst = record.GetIsFirst()
 	r.IsPublic = record.IsPublic()
 }
@@ -42,6 +43,7 @@ func (r *Record) ToDomain() *entity.Record {
 		result,
 		r.Date,
 		endsData,
+    r.IsRed,
 		r.IsFirst,
 		r.IsPublic,
 	) // create a new Record
