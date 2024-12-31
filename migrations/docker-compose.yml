@@ -1,0 +1,17 @@
+services:
+  migration:
+    container_name: migration
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./sql:/migrations
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: "postgres://app:password@db:5432/app?sslmode=disable"
+    networks:
+      - curlarc
+
+networks:
+  curlarc:
+    external: true
