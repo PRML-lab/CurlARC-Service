@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api_server:
     image: cosmtrek/air:latest
@@ -23,6 +21,8 @@ services:
         condition: service_healthy
     volumes:
       - ./:/workspaces
+    networks:
+      - curlarc
 
   db:
     image: postgres:15.4
@@ -42,3 +42,9 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app}"]
       interval: 5s
       retries: 3
+    networks:
+      - curlarc
+
+networks:
+  curlarc:
+    external: true

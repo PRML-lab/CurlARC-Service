@@ -14,7 +14,7 @@ type RecordUsecase interface {
 	GetRecordDetailsByRecordId(recordId string) (*entity.Record, error)
 	GetRecordIndicesByTeamId(teamId string) (*[]response.RecordIndex, error)
 	GetRecordsByTeamId(teamId string) (*[]entity.Record, error)
-	UpdateRecord(recordId, userId string, result entity.Result, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time, isFirst bool, isPublic bool) (*entity.Record, error)
+	UpdateRecord(recordId, userId string, result entity.Result, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time, isRed bool, isFirst bool, isPublic bool) (*entity.Record, error)
 	DeleteRecord(id string) error
 	SetVisibility(recordId, userId string, isPublic bool) (*entity.Record, error)
 }
@@ -113,7 +113,7 @@ func (u *recordUsecase) GetRecordsByTeamId(teamId string) (*[]entity.Record, err
 	return u.recordRepo.FindByTeamId(teamId)
 }
 
-func (u *recordUsecase) UpdateRecord(recordId, userId string, result entity.Result, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time, isFirst, isPublic bool) (*entity.Record, error) {
+func (u *recordUsecase) UpdateRecord(recordId, userId string, result entity.Result, enemyTeamName, place string, endsData []entity.DataPerEnd, date time.Time, isRed bool, isFirst, isPublic bool) (*entity.Record, error) {
 
 	// Get the record by ID
 	record, err := u.recordRepo.FindByRecordId(recordId)
@@ -155,6 +155,7 @@ func (u *recordUsecase) UpdateRecord(recordId, userId string, result entity.Resu
 			return nil, err
 		}
 	}
+	newRecord.SetIsRed(isRed)
 	newRecord.SetIsFirst(isFirst)
 	newRecord.SetVisibility(isPublic)
 

@@ -1,4 +1,4 @@
--- Create "records" table
+-- +goose Up
 CREATE TABLE "records" (
   "id" uuid NOT NULL,
   "team_id" text NULL,
@@ -11,3 +11,6 @@ CREATE TABLE "records" (
   PRIMARY KEY ("id"),
   CONSTRAINT "fk_teams_records" FOREIGN KEY ("team_id") REFERENCES "teams" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
+
+-- +goose Down
+DROP TABLE "records";

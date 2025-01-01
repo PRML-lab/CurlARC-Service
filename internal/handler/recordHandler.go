@@ -76,6 +76,8 @@ func (h *RecordHandler) CreateRecord() echo.HandlerFunc {
 			Place:         createdRecord.GetPlace(),
 			Date:          createdRecord.GetDate(),
 			EndsData:      createdRecord.GetEndsDataAsJSON(),
+			IsRed:         createdRecord.GetIsRed(),
+			IsFirst:       createdRecord.GetIsFirst(),
 			IsPublic:      createdRecord.IsPublic(),
 		}
 
@@ -171,6 +173,7 @@ func (h *RecordHandler) GetRecordDetailsByRecordId() echo.HandlerFunc {
 			Place:         record.GetPlace(),
 			Date:          record.GetDate(),
 			EndsData:      record.GetEndsDataAsJSON(),
+			IsRed:         record.GetIsRed(),
 			IsFirst:       record.GetIsFirst(),
 			IsPublic:      record.IsPublic(),
 		}
@@ -261,6 +264,7 @@ func (h *RecordHandler) UpdateRecord() echo.HandlerFunc {
 			*req.Place,
 			*req.EndsData,
 			*req.Date,
+			*req.IsRed,
 			*req.IsFirst,
 			*req.IsPublic,
 		)

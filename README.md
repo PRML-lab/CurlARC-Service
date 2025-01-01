@@ -27,10 +27,10 @@ $ SELECT * FROM ${table_name};
 $ flyctl proxy 5432 -a ${app_name}
 ```
 
-### Generate and Apply migration file
-Apply the migration file to the database.
+### Apply migration file
+move to the `./migrations` directory and run the following command.
 ```sh
-$ make migrate-apply
+$ make migrate-up
 ```
 
 ### Generate mocks
