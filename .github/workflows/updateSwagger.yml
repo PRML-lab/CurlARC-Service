@@ -38,8 +38,8 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "update: Swagger docs"
-            git checkout -b update-swagger-docs
-            git push origin update-swagger-docs
+            git switch -c update/swagger-docs
+            git push 
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: update-swagger-docs
+          branch: update/swagger-docs
           title: 'Update Swagger docs'
           body: 'This PR updates the Swagger documentation.'
           base: develop
