@@ -39,7 +39,6 @@ jobs:
           else
             git switch -c update/swagger-docs
             git commit -m "update: Swagger docs"
-            git pull origin update/swagger-docs
             git push --set-upstream origin update/swagger-docs
           fi
         env:
