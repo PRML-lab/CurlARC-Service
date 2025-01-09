@@ -40,6 +40,7 @@ jobs:
             git switch -c update/swagger-docs
             git commit -m "update: Swagger docs"
             git push --set-upstream origin update/swagger-docs
+            git push origin update/swagger-docs
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
