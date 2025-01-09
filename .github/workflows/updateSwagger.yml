@@ -27,8 +27,7 @@ jobs:
         run: go install github.com/swaggo/swag/cmd/swag@latest
 
       - name: Generate Swagger docs
-        run: |
-          swag init --parseDependency --parseInternal
+        run: swag init --parseDependency --parseInternal
 
       - name: Commit and push changes
         run: |
@@ -39,8 +38,8 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "update: Swagger docs"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            git pull --rebase origin develop
+            git push origin HEAD:develop
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
