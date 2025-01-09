@@ -39,7 +39,7 @@ jobs:
           else
             git commit -m "update: Swagger docs"
             git checkout -b update-swagger-docs
-            git push origin update-swagger-docs  # 変更を一時的なブランチにプッシュ
+            git push origin update-swagger-docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
