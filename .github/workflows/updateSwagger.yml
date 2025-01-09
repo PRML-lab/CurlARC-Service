@@ -38,7 +38,6 @@ jobs:
             git commit -m "update: Swagger docs"
             git branch update/swagger-docs
             git push origin update/swagger-docs
-            echo "Pushed changes to update/swagger-docs"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
