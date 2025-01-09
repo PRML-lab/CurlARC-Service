@@ -1,4 +1,4 @@
--- Create "user_teams" table
+-- +goose Up
 CREATE TABLE "user_teams" (
   "user_id" text NOT NULL,
   "team_id" text NOT NULL,
@@ -7,3 +7,6 @@ CREATE TABLE "user_teams" (
   CONSTRAINT "fk_user_teams_team" FOREIGN KEY ("team_id") REFERENCES "teams" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "fk_user_teams_user" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
+
+-- +goose Down
+DROP TABLE "user_teams";

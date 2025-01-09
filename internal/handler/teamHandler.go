@@ -29,7 +29,7 @@ func NewTeamHandler(teamUsecase usecase.TeamUsecase) TeamHandler {
 // @Success 201 {object} response.SuccessResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams [post]
+// @Router /auth/teams [post]
 func (h *TeamHandler) CreateTeam() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 認証済みユーザーのIDを取得
@@ -163,7 +163,7 @@ func (h *TeamHandler) GetInvitedTeams() echo.HandlerFunc {
 // @Produce json
 // @Success 200 {object} response.SuccessResponse{data=[]response.Team}
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams [get]
+// @Router /auth/teams [get]
 func (h *TeamHandler) GetAllTeams() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teams, err := h.teamUsecase.GetAllTeams()
@@ -207,7 +207,7 @@ func (h *TeamHandler) GetAllTeams() echo.HandlerFunc {
 // @Success 200 {object} response.SuccessResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams/{teamId} [PATCH]
+// @Router /auth/teams/{teamId} [PATCH]
 func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -256,7 +256,7 @@ func (h *TeamHandler) UpdateTeam() echo.HandlerFunc {
 // @Param id path string true "Team ID"
 // @Success 200 {object} response.SuccessResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams/{teamId} [delete]
+// @Router /auth/teams/{teamId} [delete]
 func (h *TeamHandler) DeleteTeam() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -286,7 +286,7 @@ func (h *TeamHandler) DeleteTeam() echo.HandlerFunc {
 // @Param targetId path string true "Target User ID"
 // @Success 201 {object} response.SuccessResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams/{teamId}/invite/{targetId} [post]
+// @Router /auth/teams/{teamId}/invite/{targetId} [post]
 func (h *TeamHandler) InviteUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -329,7 +329,7 @@ func (h *TeamHandler) InviteUsers() echo.HandlerFunc {
 // @Param userId path string true "User ID"
 // @Success 200 {object} response.SuccessResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams/{teamId}/accept/{userId} [post]
+// @Router /auth/teams/{teamId}/accept/{userId} [post]
 func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -361,7 +361,7 @@ func (h *TeamHandler) AcceptInvitation() echo.HandlerFunc {
 // @Param userId path string true "User ID"
 // @Success 200 {object} response.SuccessResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams/{teamId}/remove/{userId} [post]
+// @Router /auth/teams/{teamId}/remove/{userId} [post]
 func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")
@@ -394,7 +394,7 @@ func (h *TeamHandler) RemoveMember() echo.HandlerFunc {
 // @Produce json
 // @Success 200 {object} response.SuccessResponse{data=[]entity.User}
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams/{teamId}/members [get]
+// @Router /auth/teams/{teamId}/members [get]
 func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamID := c.Param("teamId")
@@ -430,6 +430,15 @@ func (h *TeamHandler) GetMembers() echo.HandlerFunc {
 	}
 }
 
+// GetInvitedUsers retrieves all users who have been invited to a team.
+// @Summary Get all invited users
+// @Description Retrieves a list of all users who have been invited to a specific team
+// @Tags Teams
+// @Param teamId path string true "Team ID"
+// @Produce json
+// @Success 200 {object} response.SuccessResponse{data=[]entity.User}
+// @Failure 500 {object} response.ErrorResponse
+// @Router /auth/teams/{teamId}/invited [get]
 func (h *TeamHandler) GetInvitedUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamID := c.Param("teamId")
@@ -473,7 +482,7 @@ func (h *TeamHandler) GetInvitedUsers() echo.HandlerFunc {
 // @Produce json
 // @Success 200 {object} response.SuccessResponse{data=response.Team}
 // @Failure 500 {object} response.ErrorResponse
-// @Router /teams/{teamId}/detail [get]
+// @Router /auth/teams/{teamId}/detail [get]
 func (h *TeamHandler) GetTeamDetails() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		teamId := c.Param("teamId")

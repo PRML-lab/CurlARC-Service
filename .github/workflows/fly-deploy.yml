@@ -2,7 +2,7 @@
 
 name: Fly Deploy
 on:
-  push:
+  pull_request:
     branches:
       - main
 env:
@@ -12,7 +12,7 @@ jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    concurrency: deploy-group # optional: ensure only one action runs at a time
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master

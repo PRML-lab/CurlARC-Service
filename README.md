@@ -22,19 +22,15 @@ $ psql -U app -d app
 $ \dt
 $ SELECT * FROM ${table_name};
 ```
+### How to proxy the flyio database
+```sh
+$ flyctl proxy 5432 -a ${app_name}
+```
 
-### Generate and Apply migration file
-Automatically generate migration file according to the gorm model.
+### Apply migration file
+move to the `./migrations` directory and run the following command.
 ```sh
-$ make migrate-diff name=${migration_name}
-```
-Push the migration file to the atlas cloud.
-```sh
-$ make migrate-push
-```
-Finally, Apply the migration file to the database.
-```sh
-$ make migrate-apply
+$ make migrate-up
 ```
 
 ### Generate mocks
