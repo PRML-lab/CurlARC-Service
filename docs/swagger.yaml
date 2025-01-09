@@ -60,6 +60,11 @@ definitions:
           $ref: '#/definitions/entity.DataPerEnd'
         type: array
     type: object
+  request.AuthorizeRequest:
+    properties:
+      id_token:
+        type: string
+    type: object
   request.CreateRecordRequest:
     properties:
       date:
@@ -86,20 +91,6 @@ definitions:
       is_public:
         type: boolean
     type: object
-  request.SignInRequest:
-    properties:
-      id_token:
-        type: string
-    type: object
-  request.SignUpRequest:
-    properties:
-      email:
-        type: string
-      id_token:
-        type: string
-      name:
-        type: string
-    type: object
   request.UpdateRecordRequest:
     properties:
       date:
@@ -110,7 +101,11 @@ definitions:
         type: array
       enemy_team_name:
         type: string
+      is_first:
+        type: boolean
       is_public:
+        type: boolean
+      is_red:
         type: boolean
       place:
         type: string
@@ -129,6 +124,13 @@ definitions:
       name:
         type: string
     type: object
+  response.AuthorizeResponse:
+    properties:
+      access_token:
+        type: string
+      user:
+        $ref: '#/definitions/response.User'
+    type: object
   response.ErrorDetail:
     properties:
       code:
@@ -141,15 +143,6 @@ definitions:
       error:
         $ref: '#/definitions/response.ErrorDetail'
       status:
-        type: string
-    type: object
-  response.SignInResponse:
-    properties:
-      email:
-        type: string
-      id:
-        type: string
-      name:
         type: string
     type: object
   response.SuccessResponse:
@@ -387,132 +380,7 @@ paths:
       summary: Create a new record
       tags:
       - records
-  /auth/users/me/teams:
-    get:
-      description: Retrieves a list of all teams associated with a specific user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/response.Team'
-                  type: array
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Get all teams for a user
-      tags:
-      - Teams
-  /auth/users/me/teams/invited:
-    get:
-      description: Retrieves a list of all teams that a user has been invited to
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/response.Team'
-                  type: array
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Get all invited teams
-      tags:
-      - Teams
-  /signin:
-    post:
-      consumes:
-      - application/json
-      description: Logs in a user with the provided ID token and returns a JWT
-      parameters:
-      - description: User login information
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/request.SignInRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/response.SignInResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Log in a user
-      tags:
-      - Users
-  /signup:
-    post:
-      consumes:
-      - application/json
-      description: Registers a new user with the provided ID token, name, and email
-      parameters:
-      - description: User registration information
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/request.SignUpRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Register a new user
-      tags:
-      - Users
-  /teams:
+  /auth/teams:
     get:
       description: Retrieves a list of all teams
       produces:
@@ -565,7 +433,7 @@ paths:
       summary: Create a new team
       tags:
       - Teams
-  /teams/{teamId}:
+  /auth/teams/{teamId}:
     delete:
       description: Deletes a team by its ID
       parameters:
@@ -620,7 +488,7 @@ paths:
       summary: Update a team
       tags:
       - Teams
-  /teams/{teamId}/accept/{userId}:
+  /auth/teams/{teamId}/accept/{userId}:
     post:
       description: Accepts an invitation to join a specific team
       parameters:
@@ -646,7 +514,35 @@ paths:
       summary: Accept a team invitation
       tags:
       - Teams
-  /teams/{teamId}/invite/{targetId}:
+  /auth/teams/{teamId}/detail:
+    get:
+      description: Retrieves detailed information about a specific team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Team'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get team details
+      tags:
+      - Teams
+  /auth/teams/{teamId}/invite/{targetId}:
     post:
       description: Invites a user to a specific team
       parameters:
@@ -672,7 +568,38 @@ paths:
       summary: Invite a user to a team
       tags:
       - Teams
-  /teams/{teamId}/members:
+  /auth/teams/{teamId}/invited:
+    get:
+      description: Retrieves a list of all users who have been invited to a specific
+        team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.User'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all invited users
+      tags:
+      - Teams
+  /auth/teams/{teamId}/members:
     get:
       description: Retrieves a list of all members of a specific team
       parameters:
@@ -702,7 +629,7 @@ paths:
       summary: Get all members of a team
       tags:
       - Teams
-  /teams/{teamId}/remove/{userId}:
+  /auth/teams/{teamId}/remove/{userId}:
     post:
       description: Removes a member from a specific team
       parameters:
@@ -728,6 +655,93 @@ paths:
       summary: Remove a member from a team
       tags:
       - Teams
+  /auth/users/me/teams:
+    get:
+      description: Retrieves a list of all teams associated with a specific user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.Team'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all teams for a user
+      tags:
+      - Teams
+  /auth/users/me/teams/invited:
+    get:
+      description: Retrieves a list of all teams that a user has been invited to
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.Team'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all invited teams
+      tags:
+      - Teams
+  /authorize:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user with the provided ID token and returns a JWT
+      parameters:
+      - description: User login information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.AuthorizeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AuthorizeResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Log in a user
+      tags:
+      - Users
   /users:
     delete:
       consumes:
